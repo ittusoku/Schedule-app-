@@ -1,0 +1,495 @@
+<!-- 7人1on1スケジュール調整 -->
+<style>
+  #s7-root {
+    --bg: #1b1f1d;
+    --panel: #232825;
+    --panel-2: #2b312d;
+    --line: #3a413c;
+    --text: #f0ede6;
+    --text-dim: #a8ada6;
+    --amber: #d9a441;
+    --amber-dim: #7a5f2c;
+    --teal: #4fa69a;
+    --danger: #c26b5a;
+
+    font-family: 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 20px 16px 28px;
+    box-sizing: border-box;
+    max-width: 720px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+  #s7-root * { box-sizing: border-box; }
+  #s7-root h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: 0.01em;
+  }
+  #s7-root .sub {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin: 0 0 18px;
+    line-height: 1.6;
+  }
+  #s7-root .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  #s7-root .row { display: flex; gap: 8px; align-items: center; }
+  #s7-root label.field-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  #s7-root input[type=text], #s7-root select {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 5px;
+    padding: 8px 10px;
+    font-size: 14px;
+    width: 100%;
+    font-family: inherit;
+  }
+  #s7-root input[type=text]:focus, #s7-root select:focus {
+    outline: 2px solid var(--amber);
+    outline-offset: 1px;
+  }
+  #s7-root .member-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  #s7-root button {
+    font-family: inherit;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+  #s7-root button.primary {
+    background: var(--amber);
+    color: #1b1f1d;
+    border-color: var(--amber);
+    font-weight: 700;
+  }
+  #s7-root button.primary:hover { filter: brightness(1.08); }
+  #s7-root button:disabled { opacity: 0.4; cursor: default; }
+  #s7-root .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  #s7-root .tab {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 8px 4px 10px;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+  }
+  #s7-root .tab.active {
+    color: var(--amber);
+    border-bottom: 2px solid var(--amber);
+    font-weight: 700;
+  }
+  #s7-root .who {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  #s7-root .who b { color: var(--amber); }
+
+  #s7-root .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #s7-root table.sched { border-collapse: collapse; font-size: 12px; }
+  #s7-root table.sched th, #s7-root table.sched td {
+    border: 1px solid var(--line);
+    text-align: center;
+    padding: 0;
+  }
+  #s7-root table.sched th {
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 6px 4px;
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+  }
+  #s7-root table.sched th.hourcol, #s7-root table.sched td.hourcol {
+    position: sticky;
+    left: 0;
+    background: var(--panel);
+    color: var(--text-dim);
+    padding: 6px 8px;
+    z-index: 1;
+    min-width: 46px;
+  }
+  #s7-root .cell {
+    width: 40px;
+    height: 30px;
+    cursor: pointer;
+    background: var(--panel-2);
+  }
+  #s7-root .cell.on { background: var(--amber); }
+  #s7-root .cell.readonly { cursor: default; }
+  #s7-root .heat0 { background: var(--panel-2); }
+  #s7-root .heat1 { background: #3d4a45; }
+  #s7-root .heat2 { background: #4c6961; }
+  #s7-root .heat3 { background: #5a877c; }
+  #s7-root .heat4 { background: #4fa69a; }
+  #s7-root .heat5 { background: #3fc9b6; color: #16211f; font-weight: 700; }
+  #s7-root .heat-full { background: var(--amber); color: #1b1f1d; font-weight: 700; }
+
+  #s7-root .legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin: 10px 0; }
+  #s7-root .legend .sw { width:14px; height:14px; border-radius:3px; border:1px solid var(--line); }
+
+  #s7-root .slot-detail {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 20px;
+  }
+  #s7-root .slot-detail b { color: var(--text); }
+
+  #s7-root .pair-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  #s7-root .pair-row select { flex: 1; }
+  #s7-root .common-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  #s7-root .chip {
+    background: var(--panel-2);
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    font-size: 12px;
+    padding: 5px 9px;
+    border-radius: 20px;
+  }
+  #s7-root .empty {
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  #s7-root .footer-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+  #s7-root .err { color: var(--danger); font-size: 12px; margin-top: 8px; }
+</style>
+
+<div id="s7-root">
+  <h1>7人1on1 スケジュール調整</h1>
+  <p class="sub">それぞれが空いている時間をチェックするだけ。全員分が集まったら、誰と誰が合うか自動で見えてくる。</p>
+  <div id="s7-body">読み込み中…</div>
+</div>
+
+<script>
+(function () {
+  const root = document.getElementById('s7-root');
+  const body = document.getElementById('s7-body');
+
+  const START_HOUR = 9;
+  const END_HOUR = 21; // exclusive-ish: last slot starts at 20:00
+  const MEMBER_SLOTS = 7;
+  const END_DATE = new Date(2026, 8, 26); // 9月26日(土)まで
+
+  let members = ['', '', '', '', '', '', ''];
+  let me = null; // selected name for editing
+  let tab = 'edit'; // 'edit' | 'overview' | 'pair'
+  let availCache = {}; // name -> {slotKey: true}
+  let pairA = null, pairB = null;
+  let selectedSlot = null;
+
+  const dates = [];
+  const base = new Date();
+  base.setHours(0, 0, 0, 0);
+  const endD = new Date(END_DATE);
+  endD.setHours(0, 0, 0, 0);
+  const dayCount = Math.max(1, Math.round((endD - base) / 86400000) + 1);
+  for (let i = 0; i < dayCount; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    dates.push(d);
+  }
+  const isoOf = (d) => d.toISOString().slice(0, 10);
+  const wd = ['日', '月', '火', '水', '木', '金', '土'];
+  const dayLabel = (d) => `${d.getMonth() + 1}/${d.getDate()}(${wd[d.getDay()]})`;
+  const hours = [];
+  for (let h = START_HOUR; h < END_HOUR; h++) hours.push(h);
+  const slotKey = (dateIso, h) => `${dateIso}_${h}`;
+
+  async function safeGet(key, shared) {
+    try {
+      const r = await window.storage.get(key, shared);
+      return r ? r.value : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function loadMembers() {
+    const v = await safeGet('members', true);
+    if (v) {
+      try {
+        const arr = JSON.parse(v);
+        if (Array.isArray(arr) && arr.length === MEMBER_SLOTS) members = arr;
+      } catch (e) {}
+    }
+  }
+
+  async function loadAvail(name) {
+    if (!name) return {};
+    if (availCache[name]) return availCache[name];
+    const v = await safeGet('avail:' + name, true);
+    let obj = {};
+    if (v) {
+      try { obj = JSON.parse(v); } catch (e) { obj = {}; }
+    }
+    availCache[name] = obj;
+    return obj;
+  }
+
+  async function saveMembers() {
+    try {
+      await window.storage.set('members', JSON.stringify(members), true);
+    } catch (e) {}
+  }
+
+  async function saveAvail(name) {
+    try {
+      await window.storage.set('avail:' + name, JSON.stringify(availCache[name] || {}), true);
+    } catch (e) {}
+  }
+
+  function activeMembers() {
+    return members.map((n, i) => n.trim()).filter((n) => n.length > 0);
+  }
+
+  function render() {
+    const active = activeMembers();
+    let html = '';
+
+    // --- member setup panel ---
+    html += `<div class="panel">
+      <label class="field-label">メンバー（最大7人・空欄でもOK）</label>
+      <div class="member-grid">`;
+    for (let i = 0; i < MEMBER_SLOTS; i++) {
+      html += `<input type="text" data-member-idx="${i}" value="${escapeAttr(members[i])}" placeholder="メンバー${i + 1}の名前" />`;
+    }
+    html += `</div>
+      <label class="field-label">あなたはどなたですか</label>
+      <select id="s7-who">
+        <option value="">選択してください</option>`;
+    active.forEach((n) => {
+      html += `<option value="${escapeAttr(n)}" ${me === n ? 'selected' : ''}>${escapeHtml(n)}</option>`;
+    });
+    html += `</select>
+    </div>`;
+
+    // --- tabs ---
+    html += `<div class="tabs">
+      <button class="tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">自分の空き時間</button>
+      <button class="tab ${tab === 'overview' ? 'active' : ''}" data-tab="overview">全員のヒートマップ</button>
+      <button class="tab ${tab === 'pair' ? 'active' : ''}" data-tab="pair">2人で合わせる</button>
+    </div>`;
+
+    if (tab === 'edit') {
+      html += renderEditTab(active);
+    } else if (tab === 'overview') {
+      html += renderOverviewTab(active);
+    } else {
+      html += renderPairTab(active);
+    }
+
+    html += `<p class="footer-note">この画面を開いている間だけデータが有効です。ページを閉じると「あなたはどなたですか」の選択はリセットされますが、入力した空き時間は保存されています。</p>`;
+
+    body.innerHTML = html;
+    attachHandlers(active);
+  }
+
+  function renderEditTab(active) {
+    if (!me) {
+      return `<div class="empty">まず上で自分の名前を選んでください。</div>`;
+    }
+    let html = `<div class="who">編集中: <b>${escapeHtml(me)}</b> の空き時間（タップして色をつける）</div>`;
+    html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
+    dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
+    html += `</tr></thead><tbody>`;
+    const myAvail = availCache[me] || {};
+    hours.forEach((h) => {
+      html += `<tr><td class="hourcol">${h}:00</td>`;
+      dates.forEach((d) => {
+        const iso = isoOf(d);
+        const key = slotKey(iso, h);
+        const on = !!myAvail[key];
+        html += `<td class="cell ${on ? 'on' : ''}" data-slot="${key}"></td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  }
+
+  function renderOverviewTab(active) {
+    if (active.length === 0) {
+      return `<div class="empty">まずメンバーを入力してください。</div>`;
+    }
+    let html = `<div class="who">色が濃いほど、空いている人数が多い時間帯です。セルをタップすると誰が空いているか表示します。</div>`;
+    html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
+    dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
+    html += `</tr></thead><tbody>`;
+    hours.forEach((h) => {
+      html += `<tr><td class="hourcol">${h}:00</td>`;
+      dates.forEach((d) => {
+        const iso = isoOf(d);
+        const key = slotKey(iso, h);
+        let count = 0;
+        active.forEach((n) => { if (availCache[n] && availCache[n][key]) count++; });
+        const ratio = count / active.length;
+        let cls = 'heat0';
+        if (count > 0 && count === active.length) cls = 'heat-full';
+        else if (ratio >= 0.7) cls = 'heat5';
+        else if (ratio >= 0.5) cls = 'heat4';
+        else if (ratio >= 0.3) cls = 'heat3';
+        else if (ratio > 0) cls = 'heat2';
+        html += `<td class="cell ${cls}" data-heat-slot="${key}" data-heat-label="${escapeAttr(dayLabel(d) + ' ' + h + ':00')}">${count > 0 ? count : ''}</td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+    html += `<div class="legend">
+      <span class="sw" style="background:var(--panel-2)"></span>誰も空いていない
+      <span class="sw" style="background:var(--teal)"></span>多くが空いている
+      <span class="sw" style="background:var(--amber)"></span>全員空いている
+    </div>`;
+    html += `<div class="slot-detail" id="s7-slot-detail">${selectedSlot ? slotDetailHtml(selectedSlot, active) : '時間帯をタップすると詳細が出ます'}</div>`;
+    return html;
+  }
+
+  function slotDetailHtml(sel, active) {
+    const who = active.filter((n) => availCache[n] && availCache[n][sel.key]);
+    if (who.length === 0) {
+      return `<b>${escapeHtml(sel.label)}</b>：まだ誰も空いていません。`;
+    }
+    return `<b>${escapeHtml(sel.label)}</b>：${who.map(escapeHtml).join('、')} が空いています。`;
+  }
+
+  function renderPairTab(active) {
+    if (active.length < 2) {
+      return `<div class="empty">2人以上のメンバーを入力してください。</div>`;
+    }
+    let html = `<div class="pair-row">
+      <select id="s7-pairA"><option value="">1人目</option>
+      ${active.map((n) => `<option value="${escapeAttr(n)}" ${pairA === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
+      </select>
+      <select id="s7-pairB"><option value="">2人目</option>
+      ${active.map((n) => `<option value="${escapeAttr(n)}" ${pairB === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
+      </select>
+    </div>`;
+
+    if (pairA && pairB && pairA !== pairB) {
+      const a = availCache[pairA] || {};
+      const b = availCache[pairB] || {};
+      const common = [];
+      dates.forEach((d) => {
+        hours.forEach((h) => {
+          const key = slotKey(isoOf(d), h);
+          if (a[key] && b[key]) common.push(`${dayLabel(d)} ${h}:00`);
+        });
+      });
+      if (common.length === 0) {
+        html += `<div class="empty">${escapeHtml(pairA)} と ${escapeHtml(pairB)} が共に空いている時間はまだありません。</div>`;
+      } else {
+        html += `<div class="who">${escapeHtml(pairA)} と ${escapeHtml(pairB)} が共に空いている時間（${common.length}件）</div>`;
+        html += `<div class="common-list">${common.map((c) => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`;
+      }
+    } else {
+      html += `<div class="empty">2人選ぶと、共通の空き時間が一覧で出ます。</div>`;
+    }
+    return html;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  async function attachHandlers(active) {
+    root.querySelectorAll('[data-member-idx]').forEach((inp) => {
+      inp.addEventListener('change', async (e) => {
+        const idx = parseInt(e.target.getAttribute('data-member-idx'), 10);
+        members[idx] = e.target.value;
+        await saveMembers();
+        render();
+      });
+    });
+
+    const whoSel = root.querySelector('#s7-who');
+    if (whoSel) {
+      whoSel.addEventListener('change', async (e) => {
+        me = e.target.value || null;
+        if (me) await loadAvail(me);
+        render();
+      });
+    }
+
+    root.querySelectorAll('.tab').forEach((t) => {
+      t.addEventListener('click', async (e) => {
+        tab = e.target.getAttribute('data-tab');
+        if (tab === 'overview' || tab === 'pair') {
+          for (const n of active) await loadAvail(n);
+        }
+        render();
+      });
+    });
+
+    root.querySelectorAll('[data-slot]').forEach((cell) => {
+      cell.addEventListener('click', async (e) => {
+        if (!me) return;
+        const key = e.currentTarget.getAttribute('data-slot');
+        availCache[me] = availCache[me] || {};
+        if (availCache[me][key]) delete availCache[me][key];
+        else availCache[me][key] = true;
+        e.currentTarget.classList.toggle('on');
+        await saveAvail(me);
+      });
+    });
+
+    root.querySelectorAll('[data-heat-slot]').forEach((cell) => {
+      cell.addEventListener('click', (e) => {
+        selectedSlot = {
+          key: e.currentTarget.getAttribute('data-heat-slot'),
+          label: e.currentTarget.getAttribute('data-heat-label'),
+        };
+        const detail = root.querySelector('#s7-slot-detail');
+        if (detail) detail.innerHTML = slotDetailHtml(selectedSlot, active);
+      });
+    });
+
+    const pa = root.querySelector('#s7-pairA');
+    const pb = root.querySelector('#s7-pairB');
+    if (pa) pa.addEventListener('change', (e) => { pairA = e.target.value || null; render(); });
+    if (pb) pb.addEventListener('change', (e) => { pairB = e.target.value || null; render(); });
+  }
+
+  async function init() {
+    await loadMembers();
+    render();
+  }
+
+  init();
+})();
+</script>
