@@ -1,478 +1,1623 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>7人1on1 スケジュール調整（9/28〜10/11）</title>
-<style>
-  :root {
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-  * { box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1on1 MatchHub - 7人コミュニティ日程マッチング (リアルタイム同期)</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  #s7-root {
-    --bg: #1b1f1d;
-    --panel: #232825;
-    --panel-2: #2b312d;
-    --line: #3a413c;
-    --text: #f0ede6;
-    --text-dim: #a8ada6;
-    --amber: #d9a441;
-    --amber-dim: #7a5f2c;
-    --teal: #4fa69a;
-    --danger: #c26b5a;
-
-    font-family: 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 20px 16px 28px;
-    max-width: 720px;
-    margin: 0 auto;
-    -webkit-font-smoothing: antialiased;
-    min-height: 100%;
-  }
-  html, body { height: 100%; }
-  body { margin: 0; background: var(--bg); }
-
-  #s7-root h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; letter-spacing: 0.01em; }
-  #s7-root h2 { font-size: 14px; font-weight: 700; margin: 0 0 8px; color: var(--amber); }
-  #s7-root .sub { color: var(--text-dim); font-size: 13px; margin: 0 0 18px; line-height: 1.6; }
-  #s7-root .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
-  #s7-root label.field-label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
-  #s7-root input[type=text], #s7-root select, #s7-root textarea {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 5px; padding: 8px 10px; font-size: 14px; width: 100%; font-family: inherit;
-  }
-  #s7-root textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
-  #s7-root input[type=text]:focus, #s7-root select:focus, #s7-root textarea:focus {
-    outline: 2px solid var(--amber); outline-offset: 1px;
-  }
-  #s7-root button {
-    font-family: inherit; font-size: 14px; border-radius: 5px; border: 1px solid var(--line);
-    background: var(--panel-2); color: var(--text); padding: 9px 14px; cursor: pointer;
-  }
-  #s7-root button.primary { background: var(--amber); color: #1b1f1d; border-color: var(--amber); font-weight: 700; }
-  #s7-root button.primary:hover { filter: brightness(1.08); }
-  #s7-root button:disabled { opacity: 0.4; cursor: default; }
-  #s7-root .tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  #s7-root .tab {
-    background: none; border: none; color: var(--text-dim); padding: 8px 4px 10px; font-size: 14px;
-    border-bottom: 2px solid transparent; border-radius: 0;
-  }
-  #s7-root .tab.active { color: var(--amber); border-bottom: 2px solid var(--amber); font-weight: 700; }
-  #s7-root .who { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
-  #s7-root .who b { color: var(--amber); }
-
-  #s7-root .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-  #s7-root table.sched { border-collapse: collapse; font-size: 12px; }
-  #s7-root table.sched th, #s7-root table.sched td { border: 1px solid var(--line); text-align: center; padding: 0; }
-  #s7-root table.sched th { color: var(--text-dim); font-weight: 500; padding: 6px 4px; background: var(--panel); position: sticky; top: 0; }
-  #s7-root table.sched th.hourcol, #s7-root table.sched td.hourcol {
-    position: sticky; left: 0; background: var(--panel); color: var(--text-dim); padding: 6px 8px; z-index: 1; min-width: 46px;
-  }
-  #s7-root .cell { width: 40px; height: 30px; cursor: pointer; background: var(--panel-2); }
-  #s7-root .cell.on { background: var(--amber); }
-  #s7-root .heat0 { background: var(--panel-2); }
-  #s7-root .heat2 { background: #4c6961; }
-  #s7-root .heat3 { background: #5a877c; }
-  #s7-root .heat4 { background: #4fa69a; }
-  #s7-root .heat5 { background: #3fc9b6; color: #16211f; font-weight: 700; }
-  #s7-root .heat-full { background: var(--amber); color: #1b1f1d; font-weight: 700; }
-
-  #s7-root .legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin: 10px 0; flex-wrap: wrap; }
-  #s7-root .legend .sw { width:14px; height:14px; border-radius:3px; border:1px solid var(--line); }
-  #s7-root .slot-detail { margin-top: 12px; font-size: 13px; color: var(--text-dim); min-height: 20px; }
-  #s7-root .slot-detail b { color: var(--text); }
-  #s7-root .pair-row { display: flex; gap: 8px; margin-bottom: 12px; }
-  #s7-root .pair-row select { flex: 1; }
-  #s7-root .common-list { display: flex; flex-wrap: wrap; gap: 6px; }
-  #s7-root .chip { background: var(--panel-2); border: 1px solid var(--teal); color: var(--teal); font-size: 12px; padding: 5px 9px; border-radius: 20px; }
-  #s7-root .empty { color: var(--text-dim); font-size: 13px; padding: 8px 0; }
-  #s7-root .footer-note { font-size: 11px; color: var(--text-dim); margin-top: 16px; line-height: 1.6; }
-  #s7-root .err { color: var(--danger); font-size: 12px; margin-top: 8px; }
-  #s7-root .ok { color: var(--teal); font-size: 12px; margin-top: 8px; }
-  #s7-root .code-box { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
-  #s7-root .code-box textarea { flex: 1; font-size: 12px; min-height: 46px; }
-  #s7-root .steps { font-size: 12px; color: var(--text-dim); line-height: 1.8; margin: 0 0 10px; padding-left: 18px; }
-  #s7-root .roster { font-size: 12px; color: var(--text-dim); margin-top: 10px; }
-  #s7-root .roster b { color: var(--text); }
-</style>
-</head>
-<body>
-<div id="s7-root">
-  <h1>7人1on1 スケジュール調整（9/28〜10/11）</h1>
-  <p class="sub">サーバーに自動保存する仕組みが使えない環境向けに、「自分の空きコードをコピペで共有」する方式にしました。どのプラン・どのアカウントからでもこのリンクだけで使えます。</p>
-  <div id="s7-body">読み込み中…</div>
-</div>
-
-<script>
-(function () {
-  const root = document.getElementById('s7-root');
-  const body = document.getElementById('s7-body');
-
-  const START_HOUR = 9;
-  const END_HOUR = 21; // last slot starts at 20:00
-  const START_DATE = new Date(2026, 8, 28); // 9/28(月)
-  const END_DATE = new Date(2026, 9, 11);   // 10/11(日)
-  const LS_KEY = 's7_local_v1';
-
-  let myName = '';
-  let mySlots = {}; // key -> true
-  let tab = 'edit'; // 'edit' | 'aggregate'
-  let pasteText = '';
-  let roster = []; // [{name, slots}] decoded from pasted codes (+ me, if named)
-  let selectedSlot = null;
-  let pairA = null, pairB = null; // indices into roster
-  let statusMsg = null; // {type: 'ok'|'err', text}
-  let copied = false;
-
-  const dates = [];
-  const startD = new Date(START_DATE); startD.setHours(0,0,0,0);
-  const endD = new Date(END_DATE); endD.setHours(0,0,0,0);
-  const dayCount = Math.max(1, Math.round((endD - startD) / 86400000) + 1);
-  for (let i = 0; i < dayCount; i++) {
-    const d = new Date(startD); d.setDate(startD.getDate() + i);
-    dates.push(d);
-  }
-  const isoOf = (d) => d.toISOString().slice(0, 10);
-  const wd = ['日', '月', '火', '水', '木', '金', '土'];
-  const dayLabel = (d) => `${d.getMonth() + 1}/${d.getDate()}(${wd[d.getDay()]})`;
-  const hours = [];
-  for (let h = START_HOUR; h < END_HOUR; h++) hours.push(h);
-  const TOTAL_SLOTS = dates.length * hours.length;
-
-  function flatIndex(dateIdx, hourIdx) { return dateIdx * hours.length + hourIdx; }
-  function slotKeyOf(dateIdx, hourIdx) { return isoOf(dates[dateIdx]) + '_' + hours[hourIdx]; }
-
-  // ---- code encode/decode ----
-  function encodeCode(name, slotsObj) {
-    const bytes = new Uint8Array(Math.ceil(TOTAL_SLOTS / 8));
-    dates.forEach((d, di) => {
-      hours.forEach((h, hi) => {
-        const key = slotKeyOf(di, hi);
-        if (slotsObj[key]) {
-          const bit = flatIndex(di, hi);
-          bytes[bit >> 3] |= (1 << (bit & 7));
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans JP"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
         }
-      });
-    });
-    let bin = '';
-    bytes.forEach((b) => { bin += String.fromCharCode(b); });
-    const b64 = btoa(bin).replace(/=+$/, '');
-    return encodeURIComponent(name.trim()) + '.' + b64;
-  }
-
-  function decodeCode(code) {
-    const trimmed = code.trim();
-    if (!trimmed) return null;
-    const dot = trimmed.indexOf('.');
-    if (dot < 0) return null;
-    const namePart = trimmed.slice(0, dot);
-    const dataPart = trimmed.slice(dot + 1);
-    let name;
-    try { name = decodeURIComponent(namePart); } catch (e) { return null; }
-    if (!name) return null;
-    let bin;
-    try { bin = atob(dataPart); } catch (e) { return null; }
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const slots = {};
-    dates.forEach((d, di) => {
-      hours.forEach((h, hi) => {
-        const bit = flatIndex(di, hi);
-        if (bytes[bit >> 3] !== undefined && (bytes[bit >> 3] & (1 << (bit & 7)))) {
-          slots[slotKeyOf(di, hi)] = true;
-        }
-      });
-    });
-    return { name, slots };
-  }
-
-  // ---- local convenience storage (this browser only; not shared) ----
-  function loadLocal() {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (data && typeof data.name === 'string') myName = data.name;
-      if (data && data.slots && typeof data.slots === 'object') mySlots = data.slots;
-    } catch (e) { /* private mode, quota, etc. — just start fresh */ }
-  }
-  function saveLocal() {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ name: myName, slots: mySlots }));
-    } catch (e) { /* ignore — this is only a convenience */ }
-  }
-
-  function rebuildRoster() {
-    const map = {}; // name -> slots (last one wins if duplicate name pasted)
-    if (myName.trim()) map[myName.trim()] = mySlots;
-    pasteText.split('\n').forEach((line) => {
-      const decoded = decodeCode(line);
-      if (decoded) map[decoded.name] = decoded.slots;
-    });
-    roster = Object.keys(map).map((name) => ({ name, slots: map[name] }));
-  }
-
-  function render() {
-    let html = '';
-
-    html += `<div class="panel">
-      <label class="field-label">あなたの名前</label>
-      <input type="text" id="s7-name" value="${escapeAttr(myName)}" placeholder="例: 田中" />
-    </div>`;
-
-    if (statusMsg) {
-      html += `<div class="panel" style="border-color:${statusMsg.type === 'err' ? 'var(--danger)' : 'var(--teal)'}">
-        <div class="${statusMsg.type === 'err' ? 'err' : 'ok'}">${statusMsg.type === 'err' ? '⚠ ' : '✓ '}${escapeHtml(statusMsg.text)}</div>
-      </div>`;
-    }
-
-    html += `<div class="tabs">
-      <button class="tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">自分の空き時間</button>
-      <button class="tab ${tab === 'aggregate' ? 'active' : ''}" data-tab="aggregate">みんなで集計</button>
-    </div>`;
-
-    if (tab === 'edit') {
-      html += renderEditTab();
-    } else {
-      html += renderAggregateTab();
-    }
-
-    html += `<p class="footer-note">名前と空き時間はこの端末のブラウザにだけ保存されます（他の人には自動で届きません）。他の人と共有するには「自分のコードをコピー」→LINEやSlackなどに貼って送る→誰かが全員分をこのページの集計欄にまとめて貼り付ける、という流れです。</p>`;
-
-    body.innerHTML = html;
-    attachHandlers();
-  }
-
-  function renderEditTab() {
-    let html = `<div class="panel">
-      <ol class="steps">
-        <li>上の欄に名前を入れる</li>
-        <li>下の表で空いている時間をタップ</li>
-        <li>「自分のコードをコピー」を押して、グループのLINEやSlackに貼って送る</li>
-      </ol>
-    </div>`;
-    if (!myName.trim()) {
-      html += `<div class="empty">まず名前を入力してください。</div>`;
-      return html;
-    }
-    html += `<div class="who">編集中: <b>${escapeHtml(myName.trim())}</b> の空き時間（タップして色をつける）</div>`;
-    html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
-    dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
-    html += `</tr></thead><tbody>`;
-    hours.forEach((h) => {
-      html += `<tr><td class="hourcol">${h}:00</td>`;
-      dates.forEach((d) => {
-        const key = isoOf(d) + '_' + h;
-        const on = !!mySlots[key];
-        html += `<td class="cell ${on ? 'on' : ''}" data-slot="${key}"></td>`;
-      });
-      html += `</tr>`;
-    });
-    html += `</tbody></table></div>`;
-
-    const code = encodeCode(myName, mySlots);
-    html += `<div class="panel" style="margin-top:14px">
-      <label class="field-label">自分のコード（コピーして共有してください）</label>
-      <div class="code-box">
-        <textarea id="s7-mycode" readonly>${escapeHtml(code)}</textarea>
-        <button class="primary" id="s7-copy">${copied ? 'コピーしました' : 'コピー'}</button>
-      </div>
-    </div>`;
-    return html;
-  }
-
-  function renderAggregateTab() {
-    let html = `<div class="panel">
-      <label class="field-label">全員分のコードを1行ずつ貼り付け（自分の分は自動で含まれます）</label>
-      <textarea id="s7-paste" placeholder="佐藤.AH4F3K9...&#10;鈴木.B8s0P2q...">${escapeHtml(pasteText)}</textarea>
-      <div class="row" style="margin-top:8px">
-        <button class="primary" id="s7-aggregate-btn">集計する</button>
-      </div>
-    </div>`;
-
-    if (roster.length === 0) {
-      html += `<div class="empty">コードを貼り付けて「集計する」を押すと、ヒートマップが出ます。</div>`;
-      return html;
-    }
-
-    html += `<div class="roster">集計対象: ${roster.map((r) => `<b>${escapeHtml(r.name)}</b>`).join('、')}（${roster.length}人）</div>`;
-
-    html += `<div class="tabs" style="margin-top:14px">
-      <button class="tab ${true ? 'active' : ''}" data-subtab="heat" disabled style="cursor:default"></button>
-    </div>`;
-
-    html += `<h2 style="margin-top:14px">全員のヒートマップ</h2>`;
-    html += `<div class="who">色が濃いほど空いている人数が多い時間帯。セルをタップすると誰が空いているか表示します。</div>`;
-    html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
-    dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
-    html += `</tr></thead><tbody>`;
-    hours.forEach((h) => {
-      html += `<tr><td class="hourcol">${h}:00</td>`;
-      dates.forEach((d) => {
-        const key = isoOf(d) + '_' + h;
-        let count = 0;
-        roster.forEach((r) => { if (r.slots[key]) count++; });
-        const ratio = count / roster.length;
-        let cls = 'heat0';
-        if (count > 0 && count === roster.length) cls = 'heat-full';
-        else if (ratio >= 0.7) cls = 'heat5';
-        else if (ratio >= 0.5) cls = 'heat4';
-        else if (ratio >= 0.3) cls = 'heat3';
-        else if (ratio > 0) cls = 'heat2';
-        html += `<td class="cell ${cls}" data-heat-slot="${key}" data-heat-label="${escapeAttr(dayLabel(d) + ' ' + h + ':00')}">${count > 0 ? count : ''}</td>`;
-      });
-      html += `</tr>`;
-    });
-    html += `</tbody></table></div>`;
-    html += `<div class="legend">
-      <span class="sw" style="background:var(--panel-2)"></span>誰も空いていない
-      <span class="sw" style="background:var(--teal)"></span>多くが空いている
-      <span class="sw" style="background:var(--amber)"></span>全員空いている
-    </div>`;
-    html += `<div class="slot-detail" id="s7-slot-detail">${selectedSlot ? slotDetailHtml(selectedSlot) : '時間帯をタップすると詳細が出ます'}</div>`;
-
-    if (roster.length >= 2) {
-      html += `<h2 style="margin-top:20px">2人で合わせる</h2>`;
-      html += `<div class="pair-row">
-        <select id="s7-pairA"><option value="">1人目</option>
-        ${roster.map((r, i) => `<option value="${i}" ${pairA === i ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
-        </select>
-        <select id="s7-pairB"><option value="">2人目</option>
-        ${roster.map((r, i) => `<option value="${i}" ${pairB === i ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
-        </select>
-      </div>`;
-      if (pairA !== null && pairB !== null && pairA !== pairB && roster[pairA] && roster[pairB]) {
-        const a = roster[pairA].slots, b = roster[pairB].slots;
-        const common = [];
-        dates.forEach((d) => {
-          hours.forEach((h) => {
-            const key = isoOf(d) + '_' + h;
-            if (a[key] && b[key]) common.push(`${dayLabel(d)} ${h}:00`);
-          });
-        });
-        if (common.length === 0) {
-          html += `<div class="empty">${escapeHtml(roster[pairA].name)} と ${escapeHtml(roster[pairB].name)} が共に空いている時間はまだありません。</div>`;
-        } else {
-          html += `<div class="who">${escapeHtml(roster[pairA].name)} と ${escapeHtml(roster[pairB].name)} が共に空いている時間（${common.length}件）</div>`;
-          html += `<div class="common-list">${common.map((c) => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`;
-        }
-      } else {
-        html += `<div class="empty">2人選ぶと、共通の空き時間が一覧で出ます。</div>`;
       }
     }
-    return html;
-  }
+  </script>
 
-  function slotDetailHtml(sel) {
-    const who = roster.filter((r) => r.slots[sel.key]);
-    if (who.length === 0) return `<b>${escapeHtml(sel.label)}</b>：まだ誰も空いていません。`;
-    return `<b>${escapeHtml(sel.label)}</b>：${who.map((r) => escapeHtml(r.name)).join('、')} が空いています。`;
-  }
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .slot-cell { user-select: none; transition: all 0.12s ease-in-out; }
+    @keyframes pulse-gentle { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-pulse-gentle { animation: pulse-gentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-800">
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function escapeAttr(s) { return escapeHtml(s); }
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+            <i class="fa-solid fa-people-arrows text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">1on1 MatchHub</h1>
+              <!-- Cloud Status Indicator -->
+              <div id="cloud-status-badge" class="flex items-center space-x-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer" title="クラウド同期設定">
+                <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse-gentle"></span>
+                <span id="cloud-status-text">ローカル動作中</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500">7人コミュニティ専用 リアルタイム日程調整</p>
+          </div>
+        </div>
 
-  function attachHandlers() {
-    const nameInput = root.querySelector('#s7-name');
-    if (nameInput) {
-      nameInput.addEventListener('change', (e) => {
-        myName = e.target.value;
-        saveLocal();
-        render();
-      });
+        <!-- Header Actions -->
+        <div class="flex items-center space-x-2 sm:space-x-2.5">
+          <!-- Firebase Connection Button -->
+          <button id="modal-firebase-btn" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1.5 rounded-lg border border-indigo-200 transition flex items-center shadow-xs">
+            <i class="fa-solid fa-fire-flame-curved mr-1.5 text-amber-500"></i>
+            <span class="hidden sm:inline">クラウド</span>接続
+          </button>
+
+          <!-- Time range config button -->
+          <button id="modal-settings-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-1.5 rounded-lg transition flex items-center">
+            <i class="fa-solid fa-clock mr-1.5 text-indigo-600"></i>
+            <span class="hidden md:inline">時間帯</span>設定
+          </button>
+
+          <!-- Member edit button -->
+          <button id="modal-edit-members-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-2.5 py-1.5 rounded-lg transition flex items-center">
+            <i class="fa-solid fa-user-pen mr-1.5 text-indigo-600"></i>
+            <span class="hidden md:inline">メンバー名</span>編集
+          </button>
+
+          <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
+          <button id="reset-data-btn" class="text-xs text-slate-400 hover:text-rose-600 p-2 rounded-lg transition" title="データを初期化">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 border-t border-slate-100 text-xs sm:text-sm font-medium" id="tabs">
+        <button data-tab="tab-slots" class="tab-btn flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg text-indigo-700 bg-indigo-50 transition whitespace-nowrap">
+          <i class="fa-regular fa-calendar-check"></i>
+          <span>① 空き時間の登録</span>
+        </button>
+        <button data-tab="tab-matcher" class="tab-btn flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-handshake-angle text-indigo-500"></i>
+          <span>② 1on1マッチング検索</span>
+          <span id="match-badge-count" class="ml-1 bg-emerald-100 text-emerald-800 text-[11px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+        </button>
+        <button data-tab="tab-confirmed" class="tab-btn flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-clipboard-check text-indigo-500"></i>
+          <span>③ 確定済みセッション</span>
+          <span id="confirmed-badge-count" class="ml-1 bg-indigo-100 text-indigo-800 text-[11px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+        </button>
+        <button data-tab="tab-matrix" class="tab-btn flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-chart-pie text-indigo-500"></i>
+          <span>④ 期間内ペア相関</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="bg-white border-b border-slate-200 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <!-- Date Stepper & Picker -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 text-xs">
+          <button id="prev-period-btn" class="px-2 py-1.5 hover:bg-white rounded-lg text-slate-700 transition" title="前の期間">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button id="today-btn" class="px-2.5 py-1.5 hover:bg-white rounded-lg font-semibold text-indigo-600 transition">
+            今日
+          </button>
+          <button id="next-period-btn" class="px-2 py-1.5 hover:bg-white rounded-lg text-slate-700 transition" title="次の期間">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+          <span class="text-slate-400 font-medium"><i class="fa-regular fa-calendar mr-1"></i>開始日:</span>
+          <input type="date" id="start-date-input" class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer">
+        </div>
+
+        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button data-days="3" class="period-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">3日間</button>
+          <button data-days="7" class="period-btn px-2.5 py-1 rounded-lg bg-white text-indigo-600 shadow-sm transition">7日間</button>
+          <button data-days="14" class="period-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">2週間</button>
+          <button data-days="30" class="period-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">1ヶ月</button>
+        </div>
+      </div>
+
+      <!-- Current Period Range Banner -->
+      <div class="flex items-center space-x-2 text-xs text-slate-600 bg-indigo-50/60 border border-indigo-100/90 px-3 py-1.5 rounded-xl">
+        <span class="font-bold text-indigo-950" id="current-range-label">YYYY/MM/DD 〜 YYYY/MM/DD</span>
+        <span class="text-indigo-300">|</span>
+        <span id="current-hours-label" class="text-slate-500 font-medium">9:00〜22:00</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-16 opacity-0 transition duration-300 pointer-events-none bg-slate-900 text-white text-xs sm:text-sm px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">通知</span>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ============================================== -->
+    <!-- TAB 1: 空き時間の登録 (SLOTS INPUT) -->
+    <!-- ============================================== -->
+    <section id="tab-slots" class="tab-content space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">操作するメンバーを選択</label>
+          <div class="flex flex-wrap items-center gap-2" id="member-select-pills">
+            <!-- Member Pills populated dynamically -->
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button id="fill-weekdays-night" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-medium rounded-lg transition flex items-center">
+            <i class="fa-solid fa-moon mr-1.5 text-emerald-600"></i>平日夜(19〜22時)を一括ON
+          </button>
+          <button id="fill-all-period" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-medium rounded-lg transition flex items-center">
+            <i class="fa-solid fa-check-double mr-1.5 text-indigo-600"></i>表示期間を全ON
+          </button>
+          <button id="clear-current-member-btn" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 font-medium rounded-lg transition">
+            <i class="fa-regular fa-trash-can mr-1"></i>表示期間クリア
+          </button>
+        </div>
+      </div>
+
+      <!-- Schedule Time Grid -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto max-h-[640px]">
+          <table class="w-full border-collapse text-left min-w-[720px]">
+            <thead class="sticky top-0 bg-slate-50/95 backdrop-blur-sm z-20 border-b border-slate-200 shadow-sm">
+              <tr id="slots-table-header" class="text-xs font-semibold text-slate-600"></tr>
+            </thead>
+            <tbody id="slots-table-body" class="divide-y divide-slate-100 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: 1on1 マッチング検索 (MATCH FINDER) -->
+    <!-- ============================================== -->
+    <section id="tab-matcher" class="tab-content hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div class="flex flex-1 items-center justify-center w-full gap-4 sm:gap-6">
+            <!-- Member A -->
+            <div class="flex-1 max-w-[220px]">
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5 flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 mr-1.5"></span>1人目
+              </label>
+              <select id="select-member-a" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+
+            <div class="flex flex-col items-center justify-center pt-5">
+              <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shadow-inner">
+                <i class="fa-solid fa-arrows-left-right text-indigo-600"></i>
+              </div>
+              <span class="text-[11px] font-bold text-slate-400 mt-1">1on1</span>
+            </div>
+
+            <!-- Member B -->
+            <div class="flex-1 max-w-[220px]">
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5 flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-violet-500 mr-1.5"></span>2人目
+              </label>
+              <select id="select-member-b" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
+            </div>
+          </div>
+
+          <!-- Quick Stat Badge -->
+          <div class="bg-indigo-50/70 border border-indigo-100 p-4 rounded-xl flex items-center space-x-4 w-full lg:w-auto min-w-[240px]">
+            <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold shadow-md shadow-indigo-100" id="mutual-count-display">0</div>
+            <div>
+              <p class="text-xs font-bold text-indigo-950">表示期間内の共通空き枠</p>
+              <p class="text-xs text-indigo-600 mt-0.5" id="mutual-status-desc">マッチする時間があります</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mutual Slots Grid -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-800 flex items-center">
+            <i class="fa-solid fa-calendar-days mr-2 text-indigo-600"></i>
+            重なっている1時間枠（ワンクリックで予約確定・全員に即時同期）
+          </h2>
+          <span class="text-xs text-slate-500" id="mutual-period-hint">期間内</span>
+        </div>
+
+        <div id="mutual-slots-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+
+        <div id="no-mutual-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-calendar-xmark"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-700">選択中の期間内に共通の空き枠が見つかりませんでした</h3>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto">上のバーで期間を「2週間」や「1ヶ月」に広げるか、次週へ移動してください。</p>
+        </div>
+      </div>
+
+      <!-- Community Pairing Suggestions -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-800 flex items-center">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-2"></i>
+            期間内おすすめペア候補（未確定ペア）
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">現在の指定期間内で、共通空き枠が多い順に候補を表示しています。</p>
+        </div>
+        <div id="pairing-recommendations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: 確定済みセッション一覧 (CONFIRMED) -->
+    <!-- ============================================== -->
+    <section id="tab-confirmed" class="tab-content hidden space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">確定した 1on1 ミーティング一覧</h2>
+          <p class="text-xs text-slate-500">クラウド上で全員にリアルタイム共有されています。</p>
+        </div>
+        <div>
+          <span class="text-xs text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            累計確定セッション数: <strong id="total-confirmed-count" class="text-indigo-600 font-bold">0</strong> 件
+          </span>
+        </div>
+      </div>
+
+      <div id="confirmed-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <div id="confirmed-empty" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center space-y-3">
+        <div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+          <i class="fa-regular fa-calendar"></i>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-700">確定した1on1セッションはありません</h3>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto">「② 1on1マッチング検索」から重なるスロットを選択して確定してください。</p>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: ペア相関マトリクス (MATRIX OVERVIEW) -->
+    <!-- ============================================== -->
+    <section id="tab-matrix" class="tab-content hidden space-y-5">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">7名全員のペア相関マトリクス</h2>
+          <p class="text-xs text-slate-500" id="matrix-period-subtitle">指定期間内における共通空き枠数と確定状況です。</p>
+        </div>
+
+        <div class="overflow-x-auto pb-2">
+          <table class="w-full text-center border-collapse min-w-[600px]" id="matrix-table"></table>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-100">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300 inline-block"></span>
+            <span>共通 5枠以上 (調整容易)</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded bg-indigo-50 border border-indigo-200 inline-block"></span>
+            <span>共通 1〜4枠</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded bg-slate-100 border border-slate-200 inline-block"></span>
+            <span>0枠</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded bg-indigo-600 inline-block"></span>
+            <span>確定済み (★マーク)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: Firebase クラウド接続設定ダイアログ -->
+  <!-- ============================================== -->
+  <div id="firebase-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-fire-flame-curved text-amber-500 text-lg"></i>
+          <h3 class="font-bold text-slate-800 text-base">Firebase Firestore リアルタイム同期設定</h3>
+        </div>
+        <button id="close-firebase-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="bg-indigo-50/70 border border-indigo-100 p-3 rounded-xl text-xs text-indigo-900 space-y-1">
+        <p class="font-bold flex items-center">
+          <i class="fa-solid fa-circle-info mr-1.5 text-indigo-600"></i>
+          7人全員でリアルタイム同期するための設定
+        </p>
+        <p class="text-slate-600">Firebase Consoleで作成した無料プロジェクトの <code>firebaseConfig</code> を貼り付けるだけで、コード編集なしで全員即時共有が有効化されます。</p>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-700 block mb-1">Firebase 設定JSON または SDKオブジェクト</label>
+          <textarea id="firebase-config-input" rows="6" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "your-app.firebaseapp.com",
+  "projectId": "your-app",
+  "storageBucket": "your-app.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}' class="w-full font-mono text-[11px] p-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700 block mb-1">共有App ID（任意: 部屋を分ける場合に変更）</label>
+          <input type="text" id="firebase-appid-input" placeholder="community-1on1-main" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <button id="clear-firebase-config-btn" class="text-xs text-slate-500 hover:text-rose-600 px-2 py-1 rounded transition">
+          接続解除 (ローカルに戻す)
+        </button>
+        <div class="flex space-x-2">
+          <button id="save-firebase-config-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center">
+            <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i>
+            接続して同期開始
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: メンバー名編集ダイアログ -->
+  <div id="member-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-user-gear text-indigo-600"></i>
+          <h3 class="font-bold text-slate-800 text-base">7名のメンバー名編集</h3>
+        </div>
+        <button id="close-member-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500">変更内容はリアルタイムで全員の画面にも即時反映されます。</p>
+      <div id="member-inputs-container" class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1"></div>
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button id="save-members-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition">
+          保存して同期
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 時間帯設定ダイアログ -->
+  <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-clock text-indigo-600"></i>
+          <h3 class="font-bold text-slate-800 text-base">時間帯レンジの設定</h3>
+        </div>
+        <button id="close-settings-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500">コミュニティの活動時間（朝活〜深夜）に合わせて調整できます。</p>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-600 block mb-1">開始時間</label>
+          <select id="setting-start-hour" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-800"></select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-600 block mb-1">終了時間</label>
+          <select id="setting-end-hour" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-800"></select>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button id="save-settings-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition">
+          変更を保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* =========================================================
+     * STATE MANAGEMENT & FIREBASE SYNC CONTROLLER
+     * ========================================================= */
+    const DEFAULT_MEMBERS = [
+      { id: "m1", name: "喜瀬", color: "#4f46e5", initial: "喜" },
+      { id: "m2", name: "メンバーA", color: "#06b6d4", initial: "A" },
+      { id: "m3", name: "メンバーB", color: "#10b981", initial: "B" },
+      { id: "m4", name: "メンバーC", color: "#f59e0b", initial: "C" },
+      { id: "m5", name: "メンバーD", color: "#ec4899", initial: "D" },
+      { id: "m6", name: "メンバーE", color: "#8b5cf6", initial: "E" },
+      { id: "m7", name: "メンバーF", color: "#3b82f6", initial: "F" }
+    ];
+
+    const DEFAULT_CONFIG = {
+      startHour: 9,
+      endHour: 22,
+      durationDays: 7
+    };
+
+    // Environment injected tokens or user saved config
+    const envFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const envAppId = typeof __app_id !== 'undefined' ? __app_id : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let userSavedFirebaseConfig = null;
+    try {
+      userSavedFirebaseConfig = JSON.parse(localStorage.getItem("matchhub_user_fb_config"));
+    } catch(e) {}
+
+    const activeFbConfig = envFirebaseConfig || userSavedFirebaseConfig;
+    let appId = envAppId || localStorage.getItem("matchhub_user_fb_appid") || "matchhub-community-7";
+
+    // Application In-memory State
+    let members = [...DEFAULT_MEMBERS];
+    let slotsData = {}; // { [memberId]: { "YYYY-MM-DD_HH:00": true } }
+    let bookings = [];  // Array<{ id, memberAId, memberBId, dateStr, hour, timestamp }>
+    let config = { ...DEFAULT_CONFIG };
+
+    let currentSelectedMemberId = members[0].id;
+    let activeStartDate = getInitialMonday();
+    let activeDaysCount = config.durationDays;
+
+    let isFirebaseConnected = false;
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+
+    function getInitialMonday() {
+      const today = new Date();
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(today.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      return monday;
     }
 
-    root.querySelectorAll('.tab[data-tab]').forEach((t) => {
-      t.addEventListener('click', (e) => {
-        tab = e.target.getAttribute('data-tab');
-        statusMsg = null;
-        render();
-      });
-    });
+    async function initFirebaseSync() {
+      if (!activeFbConfig || !activeFbConfig.apiKey) {
+        setupOfflineMode();
+        return;
+      }
 
-    root.querySelectorAll('[data-slot]').forEach((cell) => {
-      cell.addEventListener('click', (e) => {
-        if (!myName.trim()) return;
-        const key = e.currentTarget.getAttribute('data-slot');
-        if (mySlots[key]) delete mySlots[key]; else mySlots[key] = true;
-        e.currentTarget.classList.toggle('on');
-        saveLocal();
-        copied = false;
-        const codeBox = root.querySelector('#s7-mycode');
-        if (codeBox) codeBox.value = encodeCode(myName, mySlots);
-        const copyBtn = root.querySelector('#s7-copy');
-        if (copyBtn) copyBtn.textContent = 'コピー';
-      });
-    });
+      try {
+        const app = initializeApp(activeFbConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
 
-    const copyBtn = root.querySelector('#s7-copy');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', async () => {
-        const code = encodeCode(myName, mySlots);
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(code);
-          } else {
-            const ta = root.querySelector('#s7-mycode');
-            ta.select();
-            document.execCommand('copy');
-          }
-          copied = true;
-          copyBtn.textContent = 'コピーしました';
-        } catch (e) {
-          const ta = root.querySelector('#s7-mycode');
-          if (ta) { ta.select(); }
-          statusMsg = { type: 'err', text: '自動コピーに失敗しました。コード欄を選択して手動でコピーしてください。' };
-          render();
-        }
-      });
-    }
-
-    const pasteArea = root.querySelector('#s7-paste');
-    if (pasteArea) {
-      pasteArea.addEventListener('change', (e) => { pasteText = e.target.value; });
-    }
-    const aggBtn = root.querySelector('#s7-aggregate-btn');
-    if (aggBtn) {
-      aggBtn.addEventListener('click', () => {
-        if (pasteArea) pasteText = pasteArea.value;
-        rebuildRoster();
-        if (roster.length === 0) {
-          statusMsg = { type: 'err', text: 'コードを読み取れませんでした。コピーした内容をそのまま貼り付けてください。' };
+        // RULE 3: Auth Before Queries
+        if (initialAuthToken) {
+          await signInWithCustomToken(auth, initialAuthToken);
         } else {
-          statusMsg = { type: 'ok', text: `${roster.length}人分を集計しました。` };
+          await signInAnonymously(auth);
         }
-        render();
+
+        currentUser = auth.currentUser;
+        if (!currentUser) throw new Error("Authentication failed");
+
+        isFirebaseConnected = true;
+        updateCloudStatusBadge(true);
+        setupFirestoreListeners();
+        showToast("クラウド同期に接続しました！リアルタイム共有中", "success");
+      } catch (err) {
+        console.warn("Firebase Init failed, falling back to offline mode:", err);
+        setupOfflineMode();
+      }
+    }
+
+    function setupOfflineMode() {
+      isFirebaseConnected = false;
+      updateCloudStatusBadge(false);
+
+      // Load from local fallback
+      try {
+        const savedMembers = localStorage.getItem("matchhub_local_members");
+        if (savedMembers) members = JSON.parse(savedMembers);
+
+        const savedSlots = localStorage.getItem("matchhub_local_slots");
+        if (savedSlots) slotsData = JSON.parse(savedSlots);
+
+        const savedBookings = localStorage.getItem("matchhub_local_bookings");
+        if (savedBookings) bookings = JSON.parse(savedBookings);
+
+        const savedCfg = localStorage.getItem("matchhub_local_config");
+        if (savedCfg) config = JSON.parse(savedCfg);
+      } catch (e) {}
+
+      if (Object.keys(slotsData).length === 0) {
+        seedSampleSlots();
+      }
+      refreshAllViews();
+    }
+
+    function updateCloudStatusBadge(connected) {
+      const badge = document.getElementById('cloud-status-badge');
+      const dot = document.getElementById('cloud-status-dot');
+      const text = document.getElementById('cloud-status-text');
+
+      if (connected) {
+        badge.className = "flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer shadow-xs";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        text.innerText = "リアルタイム同期中";
+      } else {
+        badge.className = "flex items-center space-x-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer shadow-xs";
+        dot.className = "w-2 h-2 rounded-full bg-amber-500";
+        text.innerText = "ローカル動作中 (未同期)";
+      }
+    }
+
+    function setupFirestoreListeners() {
+      if (!isFirebaseConnected || !currentUser) return;
+
+      // RULE 1: STRICT PUBLIC PATH /artifacts/{appId}/public/data/{collectionName}
+      // RULE 2: Simple document listener, no compound query indexes
+      const mainStateDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchHubState', 'global');
+
+      onSnapshot(mainStateDocRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.members) members = data.members;
+          if (data.slotsData) {
+            try {
+              slotsData = typeof data.slotsData === 'string' ? JSON.parse(data.slotsData) : data.slotsData;
+            } catch(e) { slotsData = data.slotsData || {}; }
+          }
+          if (data.bookings) {
+            try {
+              bookings = typeof data.bookings === 'string' ? JSON.parse(data.bookings) : data.bookings;
+            } catch(e) { bookings = data.bookings || []; }
+          }
+          if (data.config) {
+            config = { ...DEFAULT_CONFIG, ...data.config };
+            activeDaysCount = config.durationDays || activeDaysCount;
+          }
+          refreshAllViews();
+        } else {
+          // Document does not exist yet -> Initialize remote document
+          persistToCloud();
+        }
+      }, (error) => {
+        console.error("Firestore snapshot error:", error);
+        showToast("クラウド同期通信でエラーが発生しました", "info");
       });
     }
 
-    root.querySelectorAll('[data-heat-slot]').forEach((cell) => {
-      cell.addEventListener('click', (e) => {
-        selectedSlot = {
-          key: e.currentTarget.getAttribute('data-heat-slot'),
-          label: e.currentTarget.getAttribute('data-heat-label'),
-        };
-        const detail = root.querySelector('#s7-slot-detail');
-        if (detail) detail.innerHTML = slotDetailHtml(selectedSlot);
+    async function persistToCloud() {
+      if (!isFirebaseConnected || !currentUser) {
+        // Fallback local save
+        localStorage.setItem("matchhub_local_members", JSON.stringify(members));
+        localStorage.setItem("matchhub_local_slots", JSON.stringify(slotsData));
+        localStorage.setItem("matchhub_local_bookings", JSON.stringify(bookings));
+        localStorage.setItem("matchhub_local_config", JSON.stringify(config));
+        return;
+      }
+
+      try {
+        const mainStateDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'matchHubState', 'global');
+        await setDoc(mainStateDocRef, {
+          members: members,
+          slotsData: JSON.stringify(slotsData),
+          bookings: JSON.stringify(bookings),
+          config: config,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Cloud persist failed:", err);
+      }
+    }
+
+    function seedSampleSlots() {
+      const base = new Date(activeStartDate);
+      members.forEach((m, idx) => {
+        slotsData[m.id] = {};
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(base);
+          d.setDate(base.getDate() + i);
+          const dateStr = formatDateISO(d);
+          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+
+          if (!isWeekend) {
+            if (idx % 2 === 0) {
+              slotsData[m.id][`${dateStr}_19:00`] = true;
+              slotsData[m.id][`${dateStr}_20:00`] = true;
+            }
+            if (idx % 3 === 0 || idx === 0) {
+              slotsData[m.id][`${dateStr}_20:00`] = true;
+              slotsData[m.id][`${dateStr}_21:00`] = true;
+            }
+          } else {
+            slotsData[m.id][`${dateStr}_14:00`] = true;
+            slotsData[m.id][`${dateStr}_15:00`] = true;
+          }
+        }
+      });
+    }
+
+    function formatDateISO(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getDayOfWeekName(date) {
+      const names = ["日", "月", "火", "水", "木", "金", "土"];
+      return names[date.getDay()];
+    }
+
+    function getActiveDateRangeList() {
+      const list = [];
+      for (let i = 0; i < activeDaysCount; i++) {
+        const cur = new Date(activeStartDate);
+        cur.setDate(activeStartDate.getDate() + i);
+        list.push({
+          dateObj: cur,
+          iso: formatDateISO(cur),
+          dayName: getDayOfWeekName(cur),
+          monthDay: `${cur.getMonth() + 1}/${cur.getDate()}`,
+          isWeekend: cur.getDay() === 0 || cur.getDay() === 6
+        });
+      }
+      return list;
+    }
+
+    function getHourList() {
+      const list = [];
+      for (let h = config.startHour; h < config.endHour; h++) {
+        list.push(`${String(h).padStart(2, '0')}:00`);
+      }
+      return list;
+    }
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const memberSelectPills = document.getElementById('member-select-pills');
+    const slotsTableHeader = document.getElementById('slots-table-header');
+    const slotsTableBody = document.getElementById('slots-table-body');
+    const startDateInput = document.getElementById('start-date-input');
+    const periodButtons = document.querySelectorAll('.period-btn');
+    const currentRangeLabel = document.getElementById('current-range-label');
+    const currentHoursLabel = document.getElementById('current-hours-label');
+    const prevPeriodBtn = document.getElementById('prev-period-btn');
+    const nextPeriodBtn = document.getElementById('next-period-btn');
+    const todayBtn = document.getElementById('today-btn');
+
+    const selectMemberA = document.getElementById('select-member-a');
+    const selectMemberB = document.getElementById('select-member-b');
+    const mutualSlotsContainer = document.getElementById('mutual-slots-container');
+    const noMutualState = document.getElementById('no-mutual-state');
+    const mutualCountDisplay = document.getElementById('mutual-count-display');
+    const mutualStatusDesc = document.getElementById('mutual-status-desc');
+    const matchBadgeCount = document.getElementById('match-badge-count');
+    const confirmedBadgeCount = document.getElementById('confirmed-badge-count');
+    const confirmedList = document.getElementById('confirmed-list');
+    const confirmedEmpty = document.getElementById('confirmed-empty');
+    const totalConfirmedCount = document.getElementById('total-confirmed-count');
+    const matrixTable = document.getElementById('matrix-table');
+    const matrixPeriodSubtitle = document.getElementById('matrix-period-subtitle');
+    const pairingRecommendations = document.getElementById('pairing-recommendations');
+    const mutualPeriodHint = document.getElementById('mutual-period-hint');
+
+    // Modals
+    const memberModal = document.getElementById('member-modal');
+    const modalEditMembersBtn = document.getElementById('modal-edit-members-btn');
+    const closeMemberModalBtn = document.getElementById('close-member-modal-btn');
+    const memberInputsContainer = document.getElementById('member-inputs-container');
+    const saveMembersBtn = document.getElementById('save-members-btn');
+
+    const settingsModal = document.getElementById('settings-modal');
+    const modalSettingsBtn = document.getElementById('modal-settings-btn');
+    const closeSettingsModalBtn = document.getElementById('close-settings-modal-btn');
+    const settingStartHour = document.getElementById('setting-start-hour');
+    const settingEndHour = document.getElementById('setting-end-hour');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const resetDataBtn = document.getElementById('reset-data-btn');
+
+    const firebaseModal = document.getElementById('firebase-modal');
+    const modalFirebaseBtn = document.getElementById('modal-firebase-btn');
+    const closeFirebaseModalBtn = document.getElementById('close-firebase-modal-btn');
+    const firebaseConfigInput = document.getElementById('firebase-config-input');
+    const firebaseAppIdInput = document.getElementById('firebase-appid-input');
+    const saveFirebaseConfigBtn = document.getElementById('save-firebase-config-btn');
+    const clearFirebaseConfigBtn = document.getElementById('clear-firebase-config-btn');
+    const cloudStatusBadge = document.getElementById('cloud-status-badge');
+
+    // Toast
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const toastIcon = document.getElementById('toast-icon');
+
+    function showToast(message, type = "success") {
+      toastMsg.innerText = message;
+      if (type === "success") {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-base";
+      }
+      toast.classList.remove('opacity-0', 'translate-y-16');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-16');
+      }, 2400);
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetId = tab.getAttribute('data-tab');
+        tabs.forEach(t => {
+          t.classList.remove('text-indigo-700', 'bg-indigo-50');
+          t.classList.add('text-slate-600');
+        });
+        tab.classList.remove('text-slate-600');
+        tab.classList.add('text-indigo-700', 'bg-indigo-50');
+
+        tabContents.forEach(c => {
+          if (c.id === targetId) {
+            c.classList.remove('hidden');
+          } else {
+            c.classList.add('hidden');
+          }
+        });
+
+        if (targetId === 'tab-matcher') {
+          updateMatcherDropdowns();
+          renderMutualSlots();
+          renderPairingRecommendations();
+        } else if (targetId === 'tab-confirmed') {
+          renderConfirmedSessions();
+        } else if (targetId === 'tab-matrix') {
+          renderMatrix();
+        }
       });
     });
 
-    const pa = root.querySelector('#s7-pairA');
-    const pb = root.querySelector('#s7-pairB');
-    if (pa) pa.addEventListener('change', (e) => { pairA = e.target.value === '' ? null : parseInt(e.target.value, 10); render(); });
-    if (pb) pb.addEventListener('change', (e) => { pairB = e.target.value === '' ? null : parseInt(e.target.value, 10); render(); });
-  }
+    function updateDateToolbarDisplay() {
+      const dates = getActiveDateRangeList();
+      const first = dates[0];
+      const last = dates[dates.length - 1];
 
-  loadLocal();
-  render();
-})();
-</script>
+      currentRangeLabel.innerText = `${first.iso}(${first.dayName}) 〜 ${last.iso}(${last.dayName})`;
+      currentHoursLabel.innerText = `${config.startHour}:00〜${config.endHour}:00`;
+      startDateInput.value = first.iso;
+      mutualPeriodHint.innerText = `期間: ${first.monthDay}〜${last.monthDay}`;
+
+      periodButtons.forEach(btn => {
+        const d = parseInt(btn.dataset.days, 10);
+        if (d === activeDaysCount) {
+          btn.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+          btn.classList.remove('text-slate-600');
+        } else {
+          btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+          btn.classList.add('text-slate-600');
+        }
+      });
+    }
+
+    startDateInput.addEventListener('change', (e) => {
+      if (!e.target.value) return;
+      const parts = e.target.value.split('-');
+      const picked = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (!isNaN(picked.getTime())) {
+        activeStartDate = picked;
+        refreshAllViews();
+      }
+    });
+
+    periodButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const days = parseInt(btn.dataset.days, 10);
+        activeDaysCount = days;
+        config.durationDays = days;
+        persistToCloud();
+        refreshAllViews();
+        showToast(`表示期間を ${days} 日間に変更しました`);
+      });
+    });
+
+    prevPeriodBtn.addEventListener('click', () => {
+      activeStartDate.setDate(activeStartDate.getDate() - activeDaysCount);
+      refreshAllViews();
+    });
+
+    nextPeriodBtn.addEventListener('click', () => {
+      activeStartDate.setDate(activeStartDate.getDate() + activeDaysCount);
+      refreshAllViews();
+    });
+
+    todayBtn.addEventListener('click', () => {
+      activeStartDate = getInitialMonday();
+      refreshAllViews();
+    });
+
+    function refreshAllViews() {
+      updateDateToolbarDisplay();
+      renderMemberPills();
+      renderSlotsTableHeader();
+      renderSlotsTableBody();
+      updateMatcherDropdowns();
+      renderMutualSlots();
+      renderPairingRecommendations();
+      renderConfirmedSessions();
+      renderMatrix();
+      updateBadgeCounts();
+    }
+
+    function renderMemberPills() {
+      memberSelectPills.innerHTML = '';
+      members.forEach(member => {
+        const isSelected = member.id === currentSelectedMemberId;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `flex items-center space-x-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition ${
+          isSelected 
+            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
+            : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+        }`;
+        btn.innerHTML = `
+          <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-white" style="background-color:${member.color}">${member.initial}</span>
+          <span>${escapeHtml(member.name)}</span>
+        `;
+        btn.addEventListener('click', () => {
+          currentSelectedMemberId = member.id;
+          renderMemberPills();
+          renderSlotsTableBody();
+        });
+        memberSelectPills.appendChild(btn);
+      });
+    }
+
+    function renderSlotsTableHeader() {
+      const dates = getActiveDateRangeList();
+      slotsTableHeader.innerHTML = '';
+
+      const thTime = document.createElement('th');
+      thTime.className = "py-3 px-3 w-20 sm:w-24 text-center border-r border-slate-200 sticky left-0 bg-slate-50 z-30 shadow-[1px_0_0_#e2e8f0]";
+      thTime.innerText = "時間帯";
+      slotsTableHeader.appendChild(thTime);
+
+      dates.forEach(d => {
+        const th = document.createElement('th');
+        let colorClass = "text-slate-700";
+        if (d.dayName === '土') colorClass = "text-blue-600 bg-blue-50/40";
+        if (d.dayName === '日') colorClass = "text-rose-600 bg-rose-50/40";
+
+        th.className = `py-2.5 px-2 text-center border-r border-slate-200/70 min-w-[70px] ${colorClass}`;
+        th.innerHTML = `
+          <div class="font-bold">${d.dayName}</div>
+          <div class="text-[10px] font-normal text-slate-400 mt-0.5">${d.monthDay}</div>
+        `;
+        slotsTableHeader.appendChild(th);
+      });
+    }
+
+    function renderSlotsTableBody() {
+      const activeMemberSlots = slotsData[currentSelectedMemberId] || {};
+      const dates = getActiveDateRangeList();
+      const hours = getHourList();
+
+      slotsTableBody.innerHTML = '';
+
+      hours.forEach(hour => {
+        const endHour = (parseInt(hour.split(':')[0], 10) + 1).toString().padStart(2, '0') + ":00";
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/50 transition";
+
+        const timeCell = document.createElement('td');
+        timeCell.className = "py-2 px-2 sm:px-3 font-medium text-slate-500 text-center border-r border-slate-200 sticky left-0 bg-slate-50/95 z-10 shadow-[1px_0_0_#e2e8f0] whitespace-nowrap";
+        timeCell.innerHTML = `<span>${hour}</span><span class="text-[9px] text-slate-400 block">${endHour}</span>`;
+        tr.appendChild(timeCell);
+
+        dates.forEach(d => {
+          const slotKey = `${d.iso}_${hour}`;
+          const isAvailable = !!activeMemberSlots[slotKey];
+          
+          const isBooked = bookings.some(b => 
+            (b.memberAId === currentSelectedMemberId || b.memberBId === currentSelectedMemberId) &&
+            b.dateStr === d.iso && b.hour === hour
+          );
+
+          const td = document.createElement('td');
+          td.className = "p-1 border-r border-slate-100 text-center";
+
+          const button = document.createElement('button');
+          button.type = "button";
+
+          if (isBooked) {
+            button.className = "w-full py-2 px-1 rounded-lg bg-violet-100 border border-violet-200 text-violet-800 font-medium text-xs cursor-not-allowed flex items-center justify-center space-x-1";
+            button.innerHTML = '<i class="fa-solid fa-lock text-[10px]"></i> <span class="hidden sm:inline">予約済</span>';
+            button.disabled = true;
+          } else if (isAvailable) {
+            button.className = "slot-cell w-full py-2 px-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-sm shadow-emerald-200 flex items-center justify-center space-x-1";
+            button.innerHTML = '<i class="fa-solid fa-circle-check text-[11px]"></i> <span class="hidden sm:inline">空き</span>';
+            button.addEventListener('click', () => toggleSlot(d.iso, hour));
+          } else {
+            button.className = "slot-cell w-full py-2 px-1 rounded-lg bg-slate-50 hover:bg-slate-200/80 text-slate-400 text-xs border border-dashed border-slate-200";
+            button.innerHTML = '<span>ー</span>';
+            button.addEventListener('click', () => toggleSlot(d.iso, hour));
+          }
+
+          td.appendChild(button);
+          tr.appendChild(td);
+        });
+
+        slotsTableBody.appendChild(tr);
+      });
+    }
+
+    function toggleSlot(dateStr, hour) {
+      if (!slotsData[currentSelectedMemberId]) {
+        slotsData[currentSelectedMemberId] = {};
+      }
+      const slotKey = `${dateStr}_${hour}`;
+      if (slotsData[currentSelectedMemberId][slotKey]) {
+        delete slotsData[currentSelectedMemberId][slotKey];
+      } else {
+        slotsData[currentSelectedMemberId][slotKey] = true;
+      }
+      renderSlotsTableBody();
+      updateBadgeCounts();
+      persistToCloud();
+    }
+
+    // Quick Slot Fills
+    document.getElementById('fill-weekdays-night').addEventListener('click', () => {
+      if (!slotsData[currentSelectedMemberId]) slotsData[currentSelectedMemberId] = {};
+      const dates = getActiveDateRangeList();
+      let count = 0;
+      dates.forEach(d => {
+        if (!d.isWeekend) {
+          ["19:00", "20:00", "21:00"].forEach(h => {
+            const hourNum = parseInt(h.split(':')[0], 10);
+            if (hourNum >= config.startHour && hourNum < config.endHour) {
+              slotsData[currentSelectedMemberId][`${d.iso}_${h}`] = true;
+              count++;
+            }
+          });
+        }
+      });
+      renderSlotsTableBody();
+      updateBadgeCounts();
+      persistToCloud();
+      showToast(`平日夜(${count}枠)を空きに設定しました`);
+    });
+
+    document.getElementById('fill-all-period').addEventListener('click', () => {
+      if (!slotsData[currentSelectedMemberId]) slotsData[currentSelectedMemberId] = {};
+      const dates = getActiveDateRangeList();
+      const hours = getHourList();
+      dates.forEach(d => {
+        hours.forEach(h => {
+          slotsData[currentSelectedMemberId][`${d.iso}_${h}`] = true;
+        });
+      });
+      renderSlotsTableBody();
+      updateBadgeCounts();
+      persistToCloud();
+      showToast("表示期間内の全枠を一括で空きにしました");
+    });
+
+    document.getElementById('clear-current-member-btn').addEventListener('click', () => {
+      if (!slotsData[currentSelectedMemberId]) return;
+      const dates = getActiveDateRangeList();
+      const hours = getHourList();
+      dates.forEach(d => {
+        hours.forEach(h => {
+          delete slotsData[currentSelectedMemberId][`${d.iso}_${h}`];
+        });
+      });
+      renderSlotsTableBody();
+      updateBadgeCounts();
+      persistToCloud();
+      showToast("表示期間の空き枠をクリアしました", "info");
+    });
+
+    function updateMatcherDropdowns() {
+      const prevA = selectMemberA.value || members[0]?.id;
+      let prevB = selectMemberB.value || members[1]?.id;
+
+      selectMemberA.innerHTML = '';
+      selectMemberB.innerHTML = '';
+
+      members.forEach((m) => {
+        const optA = document.createElement('option');
+        optA.value = m.id;
+        optA.textContent = m.name;
+        if (m.id === prevA) optA.selected = true;
+        selectMemberA.appendChild(optA);
+
+        const optB = document.createElement('option');
+        optB.value = m.id;
+        optB.textContent = m.name;
+        if (m.id === prevB) optB.selected = true;
+        selectMemberB.appendChild(optB);
+      });
+
+      if (selectMemberA.value === selectMemberB.value) {
+        const alt = members.find(m => m.id !== selectMemberA.value);
+        if (alt) selectMemberB.value = alt.id;
+      }
+    }
+
+    selectMemberA.addEventListener('change', () => {
+      if (selectMemberA.value === selectMemberB.value) {
+        const alt = members.find(m => m.id !== selectMemberA.value);
+        if (alt) selectMemberB.value = alt.id;
+      }
+      renderMutualSlots();
+    });
+
+    selectMemberB.addEventListener('change', () => {
+      if (selectMemberA.value === selectMemberB.value) {
+        const alt = members.find(m => m.id !== selectMemberB.value);
+        if (alt) selectMemberA.value = alt.id;
+      }
+      renderMutualSlots();
+    });
+
+    function getMutualSlots(memberId1, memberId2) {
+      const slotsA = slotsData[memberId1] || {};
+      const slotsB = slotsData[memberId2] || {};
+      const dates = getActiveDateRangeList();
+      const hours = getHourList();
+      const mutual = [];
+
+      dates.forEach(d => {
+        hours.forEach(h => {
+          const key = `${d.iso}_${h}`;
+          if (slotsA[key] && slotsB[key]) {
+            const isBooked = bookings.some(b => 
+              (b.memberAId === memberId1 || b.memberBId === memberId1 || b.memberAId === memberId2 || b.memberBId === memberId2) &&
+              b.dateStr === d.iso && b.hour === h
+            );
+            if (!isBooked) {
+              mutual.push({
+                dateStr: d.iso,
+                hour: h,
+                dayName: d.dayName,
+                monthDay: d.monthDay,
+                isWeekend: d.isWeekend
+              });
+            }
+          }
+        });
+      });
+
+      return mutual;
+    }
+
+    function renderMutualSlots() {
+      const idA = selectMemberA.value;
+      const idB = selectMemberB.value;
+      if (!idA || !idB || idA === idB) {
+        mutualSlotsContainer.innerHTML = '';
+        noMutualState.classList.remove('hidden');
+        mutualCountDisplay.innerText = "0";
+        return;
+      }
+
+      const memA = members.find(m => m.id === idA);
+      const memB = members.find(m => m.id === idB);
+      const mutual = getMutualSlots(idA, idB);
+
+      mutualCountDisplay.innerText = mutual.length;
+      matchBadgeCount.innerText = mutual.length;
+
+      if (mutual.length === 0) {
+        mutualSlotsContainer.innerHTML = '';
+        noMutualState.classList.remove('hidden');
+        mutualStatusDesc.innerText = "期間内に重なる枠がありません";
+        return;
+      }
+
+      noMutualState.classList.add('hidden');
+      mutualStatusDesc.innerText = `${mutual.length}コマの候補枠が見つかりました`;
+      mutualSlotsContainer.innerHTML = '';
+
+      mutual.forEach(slot => {
+        const endHour = (parseInt(slot.hour.split(':')[0], 10) + 1).toString().padStart(2, '0') + ":00";
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition flex flex-col justify-between space-y-3";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${slot.isWeekend ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}">
+                ${slot.monthDay} (${slot.dayName})
+              </span>
+              <span class="text-[11px] text-slate-400 font-medium">60分</span>
+            </div>
+            <div class="mt-2 text-lg font-bold text-slate-800 flex items-baseline space-x-1">
+              <span>${slot.hour}</span>
+              <span class="text-xs text-slate-400 font-normal">〜 ${endHour}</span>
+            </div>
+            <div class="flex items-center space-x-2 mt-2 pt-2 border-t border-slate-100 text-xs text-slate-600">
+              <span class="font-semibold text-slate-800">${escapeHtml(memA.name)}</span>
+              <span class="text-slate-400">×</span>
+              <span class="font-semibold text-slate-800">${escapeHtml(memB.name)}</span>
+            </div>
+          </div>
+
+          <button type="button" class="book-slot-btn w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>この枠で1on1を確定</span>
+          </button>
+        `;
+
+        card.querySelector('.book-slot-btn').addEventListener('click', () => {
+          bookSession(idA, idB, slot.dateStr, slot.hour);
+        });
+
+        mutualSlotsContainer.appendChild(card);
+      });
+    }
+
+    async function bookSession(idA, idB, dateStr, hour) {
+      const memA = members.find(m => m.id === idA);
+      const memB = members.find(m => m.id === idB);
+
+      const newBooking = {
+        id: "b_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+        memberAId: idA,
+        memberBId: idB,
+        dateStr: dateStr,
+        hour: hour,
+        timestamp: new Date().toISOString()
+      };
+
+      bookings.push(newBooking);
+      renderMutualSlots();
+      renderSlotsTableBody();
+      updateBadgeCounts();
+      renderPairingRecommendations();
+      await persistToCloud();
+
+      showToast(`${memA.name} & ${memB.name} の1on1を確定・同期しました！`);
+    }
+
+    function renderPairingRecommendations() {
+      pairingRecommendations.innerHTML = '';
+      const pairs = [];
+
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          const m1 = members[i];
+          const m2 = members[j];
+
+          const hasBooked = bookings.some(b => 
+            (b.memberAId === m1.id && b.memberBId === m2.id) || 
+            (b.memberAId === m2.id && b.memberBId === m1.id)
+          );
+
+          const mutualCount = getMutualSlots(m1.id, m2.id).length;
+          pairs.push({ m1, m2, hasBooked, mutualCount });
+        }
+      }
+
+      const candidates = pairs
+        .filter(p => !p.hasBooked && p.mutualCount > 0)
+        .sort((a, b) => b.mutualCount - a.mutualCount)
+        .slice(0, 6);
+
+      if (candidates.length === 0) {
+        pairingRecommendations.innerHTML = `
+          <div class="col-span-full py-4 text-center text-xs text-slate-400">
+            現在の表示期間内に未確定の候補ペアはありません
+          </div>
+        `;
+        return;
+      }
+
+      candidates.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-50 hover:bg-indigo-50/40 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between transition";
+        card.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <div class="flex -space-x-1.5">
+              <span class="w-6 h-6 rounded-full text-[10px] text-white flex items-center justify-center font-bold border border-white" style="background:${p.m1.color}">${p.m1.initial}</span>
+              <span class="w-6 h-6 rounded-full text-[10px] text-white flex items-center justify-center font-bold border border-white" style="background:${p.m2.color}">${p.m2.initial}</span>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-800">${escapeHtml(p.m1.name)} & ${escapeHtml(p.m2.name)}</div>
+              <div class="text-[11px] text-emerald-600 font-medium">${p.mutualCount}コマ空きあり</div>
+            </div>
+          </div>
+          <button class="select-pair-quick-btn text-xs bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 font-medium px-2.5 py-1.5 rounded-lg border border-indigo-200 shadow-sm transition">
+            選択
+          </button>
+        `;
+
+        card.querySelector('.select-pair-quick-btn').addEventListener('click', () => {
+          selectMemberA.value = p.m1.id;
+          selectMemberB.value = p.m2.id;
+          renderMutualSlots();
+          window.scrollTo({ top: 140, behavior: 'smooth' });
+        });
+
+        pairingRecommendations.appendChild(card);
+      });
+    }
+
+    function renderConfirmedSessions() {
+      confirmedList.innerHTML = '';
+      totalConfirmedCount.innerText = bookings.length;
+
+      if (bookings.length === 0) {
+        confirmedEmpty.classList.remove('hidden');
+        return;
+      }
+      confirmedEmpty.classList.add('hidden');
+
+      const sorted = [...bookings].sort((a, b) => {
+        if (a.dateStr !== b.dateStr) return a.dateStr.localeCompare(b.dateStr);
+        return a.hour.localeCompare(b.hour);
+      });
+
+      sorted.forEach(booking => {
+        const memA = members.find(m => m.id === booking.memberAId) || { name: "未定", color: "#666", initial: "?" };
+        const memB = members.find(m => m.id === booking.memberBId) || { name: "未定", color: "#666", initial: "?" };
+        
+        const dateParts = booking.dateStr.split('-');
+        const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        const dayName = getDayOfWeekName(dateObj);
+        const endHour = (parseInt(booking.hour.split(':')[0], 10) + 1).toString().padStart(2, '0') + ":00";
+
+        // Google Calendar Link generator
+        const dtStart = booking.dateStr.replace(/-/g, '') + 'T' + booking.hour.replace(':', '') + '00';
+        const dtEnd = booking.dateStr.replace(/-/g, '') + 'T' + endHour.replace(':', '') + '00';
+        const gcalTitle = encodeURIComponent(`1on1: ${memA.name} × ${memB.name}`);
+        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${gcalTitle}&dates=${dtStart}/${dtEnd}&details=7人コミュニティ1on1セッション`;
+
+        const card = document.createElement('div');
+        card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-circle text-[8px] text-emerald-500"></i>
+                <span>確定済み</span>
+              </span>
+              <button data-id="${booking.id}" class="cancel-booking-btn text-slate-400 hover:text-rose-600 text-xs px-2 py-1 rounded hover:bg-rose-50 transition">
+                <i class="fa-solid fa-trash-can mr-1"></i>解除
+              </button>
+            </div>
+
+            <div class="mt-3">
+              <div class="text-sm font-bold text-slate-800">
+                ${booking.dateStr} (${dayName}) ${booking.hour} 〜 ${endHour}
+              </div>
+              <div class="text-xs text-slate-400 mt-0.5">オンライン 60分</div>
+            </div>
+
+            <div class="mt-4 flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div class="flex items-center space-x-2">
+                <span class="w-7 h-7 rounded-full text-xs text-white flex items-center justify-center font-bold" style="background-color:${memA.color}">${memA.initial}</span>
+                <span class="text-xs font-bold text-slate-800">${escapeHtml(memA.name)}</span>
+              </div>
+              <span class="text-slate-400 font-bold text-xs">×</span>
+              <div class="flex items-center space-x-2">
+                <span class="w-7 h-7 rounded-full text-xs text-white flex items-center justify-center font-bold" style="background-color:${memB.color}">${memB.initial}</span>
+                <span class="text-xs font-bold text-slate-800">${escapeHtml(memB.name)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <a href="${gcalUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+              <i class="fa-regular fa-calendar-plus mr-1"></i>Googleカレンダーに登録
+            </a>
+          </div>
+        `;
+
+        card.querySelector('.cancel-booking-btn').addEventListener('click', async () => {
+          bookings = bookings.filter(b => b.id !== booking.id);
+          renderConfirmedSessions();
+          renderSlotsTableBody();
+          updateBadgeCounts();
+          await persistToCloud();
+          showToast("セッション予約を解除しました", "info");
+        });
+
+        confirmedList.appendChild(card);
+      });
+    }
+
+    function renderMatrix() {
+      matrixTable.innerHTML = '';
+      const dates = getActiveDateRangeList();
+      matrixPeriodSubtitle.innerText = `期間: ${dates[0].iso} 〜 ${dates[dates.length - 1].iso} 内の共通空き枠数`;
+
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      headerRow.className = "text-xs font-semibold text-slate-600 bg-slate-50";
+
+      const cornerTh = document.createElement('th');
+      cornerTh.className = "py-3 px-3 border border-slate-200 text-left bg-slate-100/70";
+      cornerTh.textContent = "メンバー";
+      headerRow.appendChild(cornerTh);
+
+      members.forEach(m => {
+        const th = document.createElement('th');
+        th.className = "py-2.5 px-2 border border-slate-200 text-center min-w-[70px]";
+        th.innerHTML = `
+          <div class="flex flex-col items-center">
+            <span class="w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold mb-1" style="background:${m.color}">${m.initial}</span>
+            <span class="text-slate-800 truncate max-w-[64px]">${escapeHtml(m.name)}</span>
+          </div>
+        `;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      matrixTable.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      tbody.className = "text-xs divide-y divide-slate-200";
+
+      members.forEach((rowMember, i) => {
+        const tr = document.createElement('tr');
+
+        const rowTh = document.createElement('th');
+        rowTh.className = "py-2.5 px-3 border border-slate-200 text-left font-semibold text-slate-800 bg-slate-50 flex items-center space-x-2";
+        rowTh.innerHTML = `
+          <span class="w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style="background:${rowMember.color}">${rowMember.initial}</span>
+          <span class="truncate max-w-[80px]">${escapeHtml(rowMember.name)}</span>
+        `;
+        tr.appendChild(rowTh);
+
+        members.forEach((colMember, j) => {
+          const td = document.createElement('td');
+          td.className = "py-2 px-2 border border-slate-200 text-center font-semibold";
+
+          if (i === j) {
+            td.className += " bg-slate-100 text-slate-300 select-none";
+            td.textContent = "ー";
+          } else {
+            const hasConfirmed = bookings.some(b => 
+              (b.memberAId === rowMember.id && b.memberBId === colMember.id) ||
+              (b.memberAId === colMember.id && b.memberBId === rowMember.id)
+            );
+
+            const count = getMutualSlots(rowMember.id, colMember.id).length;
+
+            if (hasConfirmed) {
+              td.className += " bg-indigo-600 text-white shadow-inner cursor-pointer";
+              td.innerHTML = '<span title="確定済み">★ 確定</span>';
+            } else if (count >= 5) {
+              td.className += " bg-emerald-100 text-emerald-800 hover:bg-emerald-200 cursor-pointer";
+              td.textContent = `${count}枠`;
+            } else if (count > 0) {
+              td.className += " bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer";
+              td.textContent = `${count}枠`;
+            } else {
+              td.className += " text-slate-300";
+              td.textContent = "0";
+            }
+
+            if (i !== j) {
+              td.addEventListener('click', () => {
+                selectMemberA.value = rowMember.id;
+                selectMemberB.value = colMember.id;
+                document.querySelector('[data-tab="tab-matcher"]').click();
+              });
+            }
+          }
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      matrixTable.appendChild(tbody);
+    }
+
+    // Time Range Modal
+    function populateSettingsHours() {
+      settingStartHour.innerHTML = '';
+      settingEndHour.innerHTML = '';
+
+      for (let h = 5; h <= 15; h++) {
+        const opt = document.createElement('option');
+        opt.value = h;
+        opt.textContent = `${String(h).padStart(2, '0')}:00`;
+        if (h === config.startHour) opt.selected = true;
+        settingStartHour.appendChild(opt);
+      }
+
+      for (let h = 18; h <= 24; h++) {
+        const opt = document.createElement('option');
+        opt.value = h;
+        opt.textContent = `${String(h).padStart(2, '0')}:00`;
+        if (h === config.endHour) opt.selected = true;
+        settingEndHour.appendChild(opt);
+      }
+    }
+
+    modalSettingsBtn.addEventListener('click', () => {
+      populateSettingsHours();
+      settingsModal.classList.remove('hidden');
+    });
+
+    closeSettingsModalBtn.addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+    });
+
+    saveSettingsBtn.addEventListener('click', async () => {
+      const s = parseInt(settingStartHour.value, 10);
+      const e = parseInt(settingEndHour.value, 10);
+      if (s >= e) {
+        showToast("開始時間は終了時間より前である必要があります", "info");
+        return;
+      }
+      config.startHour = s;
+      config.endHour = e;
+      settingsModal.classList.add('hidden');
+      refreshAllViews();
+      await persistToCloud();
+      showToast("活動時間帯レンジを保存・同期しました");
+    });
+
+    // Member Edit Modal
+    modalEditMembersBtn.addEventListener('click', () => {
+      memberInputsContainer.innerHTML = '';
+      members.forEach((m, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center space-x-3";
+        div.innerHTML = `
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0" style="background-color:${m.color}">
+            ${idx + 1}
+          </div>
+          <input type="text" data-idx="${idx}" value="${escapeHtml(m.name)}" class="member-input flex-1 px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        `;
+        memberInputsContainer.appendChild(div);
+      });
+      memberModal.classList.remove('hidden');
+    });
+
+    closeMemberModalBtn.addEventListener('click', () => {
+      memberModal.classList.add('hidden');
+    });
+
+    saveMembersBtn.addEventListener('click', async () => {
+      const inputs = memberInputsContainer.querySelectorAll('.member-input');
+      inputs.forEach(input => {
+        const idx = parseInt(input.dataset.idx, 10);
+        const val = input.value.trim();
+        if (val) {
+          members[idx].name = val;
+          members[idx].initial = val.slice(0, 1);
+        }
+      });
+      memberModal.classList.add('hidden');
+      renderMemberPills();
+      refreshAllViews();
+      await persistToCloud();
+      showToast("メンバー名を保存・全員に同期しました");
+    });
+
+    // Firebase Setup Modal
+    function openFirebaseModal() {
+      if (userSavedFirebaseConfig) {
+        firebaseConfigInput.value = JSON.stringify(userSavedFirebaseConfig, null, 2);
+      }
+      firebaseAppIdInput.value = appId;
+      firebaseModal.classList.remove('hidden');
+    }
+
+    modalFirebaseBtn.addEventListener('click', openFirebaseModal);
+    cloudStatusBadge.addEventListener('click', openFirebaseModal);
+
+    closeFirebaseModalBtn.addEventListener('click', () => {
+      firebaseModal.classList.add('hidden');
+    });
+
+    saveFirebaseConfigBtn.addEventListener('click', () => {
+      const raw = firebaseConfigInput.value.trim();
+      const customAppId = firebaseAppIdInput.value.trim();
+      if (!raw) {
+        showToast("Firebase ConfigのJSONを入力してください", "info");
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        localStorage.setItem("matchhub_user_fb_config", JSON.stringify(parsed));
+        if (customAppId) {
+          localStorage.setItem("matchhub_user_fb_appid", customAppId);
+        }
+        firebaseModal.classList.add('hidden');
+        showToast("接続設定を保存しました。ページを再読み込みします...");
+        setTimeout(() => location.reload(), 800);
+      } catch (e) {
+        showToast("JSON形式が正しくありません。ご確認ください", "info");
+      }
+    });
+
+    clearFirebaseConfigBtn.addEventListener('click', () => {
+      localStorage.removeItem("matchhub_user_fb_config");
+      localStorage.removeItem("matchhub_user_fb_appid");
+      firebaseModal.classList.add('hidden');
+      showToast("クラウド設定を解除しました。ローカルモードに戻ります...");
+      setTimeout(() => location.reload(), 800);
+    });
+
+    // Reset Data button
+    resetDataBtn.addEventListener('click', async () => {
+      members = JSON.parse(JSON.stringify(DEFAULT_MEMBERS));
+      slotsData = {};
+      bookings = [];
+      config = { ...DEFAULT_CONFIG };
+      activeStartDate = getInitialMonday();
+      activeDaysCount = config.durationDays;
+
+      seedSampleSlots();
+      renderMemberPills();
+      refreshAllViews();
+      await persistToCloud();
+      showToast("初期状態に復元しました");
+    });
+
+    function updateBadgeCounts() {
+      confirmedBadgeCount.innerText = bookings.length;
+      totalConfirmedCount.innerText = bookings.length;
+
+      const idA = selectMemberA.value || members[0]?.id;
+      const idB = selectMemberB.value || members[1]?.id;
+      if (idA && idB && idA !== idB) {
+        matchBadgeCount.innerText = getMutualSlots(idA, idB).length;
+      }
+    }
+
+    function escapeHtml(string) {
+      if (!string) return '';
+      return String(string)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Initialize application on window load
+    window.onload = function() {
+      renderMemberPills();
+      refreshAllViews();
+      initFirebaseSync();
+    };
+  </script>
 </body>
 </html>
