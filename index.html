@@ -1,5 +1,18 @@
-<!-- 7人1on1スケジュール調整 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>7人1on1 スケジュール調整（9/28〜10/11）</title>
 <style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+
   #s7-root {
     --bg: #1b1f1d;
     --panel: #232825;
@@ -15,184 +28,83 @@
     font-family: 'Zen Kaku Gothic New', 'Noto Sans JP', -apple-system, sans-serif;
     background: var(--bg);
     color: var(--text);
-    border-radius: 10px;
     padding: 20px 16px 28px;
-    box-sizing: border-box;
     max-width: 720px;
     margin: 0 auto;
     -webkit-font-smoothing: antialiased;
+    min-height: 100%;
   }
-  #s7-root * { box-sizing: border-box; }
-  #s7-root h1 {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0 0 4px;
-    letter-spacing: 0.01em;
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); }
+
+  #s7-root h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; letter-spacing: 0.01em; }
+  #s7-root h2 { font-size: 14px; font-weight: 700; margin: 0 0 8px; color: var(--amber); }
+  #s7-root .sub { color: var(--text-dim); font-size: 13px; margin: 0 0 18px; line-height: 1.6; }
+  #s7-root .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+  #s7-root label.field-label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+  #s7-root input[type=text], #s7-root select, #s7-root textarea {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 5px; padding: 8px 10px; font-size: 14px; width: 100%; font-family: inherit;
   }
-  #s7-root .sub {
-    color: var(--text-dim);
-    font-size: 13px;
-    margin: 0 0 18px;
-    line-height: 1.6;
-  }
-  #s7-root .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-  #s7-root .row { display: flex; gap: 8px; align-items: center; }
-  #s7-root label.field-label {
-    display: block;
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-  #s7-root input[type=text], #s7-root select {
-    background: var(--panel-2);
-    border: 1px solid var(--line);
-    color: var(--text);
-    border-radius: 5px;
-    padding: 8px 10px;
-    font-size: 14px;
-    width: 100%;
-    font-family: inherit;
-  }
-  #s7-root input[type=text]:focus, #s7-root select:focus {
-    outline: 2px solid var(--amber);
-    outline-offset: 1px;
-  }
-  #s7-root .member-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
+  #s7-root textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  #s7-root input[type=text]:focus, #s7-root select:focus, #s7-root textarea:focus {
+    outline: 2px solid var(--amber); outline-offset: 1px;
   }
   #s7-root button {
-    font-family: inherit;
-    font-size: 14px;
-    border-radius: 5px;
-    border: 1px solid var(--line);
-    background: var(--panel-2);
-    color: var(--text);
-    padding: 9px 14px;
-    cursor: pointer;
+    font-family: inherit; font-size: 14px; border-radius: 5px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--text); padding: 9px 14px; cursor: pointer;
   }
-  #s7-root button.primary {
-    background: var(--amber);
-    color: #1b1f1d;
-    border-color: var(--amber);
-    font-weight: 700;
-  }
+  #s7-root button.primary { background: var(--amber); color: #1b1f1d; border-color: var(--amber); font-weight: 700; }
   #s7-root button.primary:hover { filter: brightness(1.08); }
   #s7-root button:disabled { opacity: 0.4; cursor: default; }
-  #s7-root .tabs {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-    border-bottom: 1px solid var(--line);
-  }
+  #s7-root .tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   #s7-root .tab {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    padding: 8px 4px 10px;
-    font-size: 14px;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
+    background: none; border: none; color: var(--text-dim); padding: 8px 4px 10px; font-size: 14px;
+    border-bottom: 2px solid transparent; border-radius: 0;
   }
-  #s7-root .tab.active {
-    color: var(--amber);
-    border-bottom: 2px solid var(--amber);
-    font-weight: 700;
-  }
-  #s7-root .who {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-  }
+  #s7-root .tab.active { color: var(--amber); border-bottom: 2px solid var(--amber); font-weight: 700; }
+  #s7-root .who { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
   #s7-root .who b { color: var(--amber); }
 
-  #s7-root .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #s7-root .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   #s7-root table.sched { border-collapse: collapse; font-size: 12px; }
-  #s7-root table.sched th, #s7-root table.sched td {
-    border: 1px solid var(--line);
-    text-align: center;
-    padding: 0;
-  }
-  #s7-root table.sched th {
-    color: var(--text-dim);
-    font-weight: 500;
-    padding: 6px 4px;
-    background: var(--panel);
-    position: sticky;
-    top: 0;
-  }
+  #s7-root table.sched th, #s7-root table.sched td { border: 1px solid var(--line); text-align: center; padding: 0; }
+  #s7-root table.sched th { color: var(--text-dim); font-weight: 500; padding: 6px 4px; background: var(--panel); position: sticky; top: 0; }
   #s7-root table.sched th.hourcol, #s7-root table.sched td.hourcol {
-    position: sticky;
-    left: 0;
-    background: var(--panel);
-    color: var(--text-dim);
-    padding: 6px 8px;
-    z-index: 1;
-    min-width: 46px;
+    position: sticky; left: 0; background: var(--panel); color: var(--text-dim); padding: 6px 8px; z-index: 1; min-width: 46px;
   }
-  #s7-root .cell {
-    width: 40px;
-    height: 30px;
-    cursor: pointer;
-    background: var(--panel-2);
-  }
+  #s7-root .cell { width: 40px; height: 30px; cursor: pointer; background: var(--panel-2); }
   #s7-root .cell.on { background: var(--amber); }
-  #s7-root .cell.readonly { cursor: default; }
   #s7-root .heat0 { background: var(--panel-2); }
-  #s7-root .heat1 { background: #3d4a45; }
   #s7-root .heat2 { background: #4c6961; }
   #s7-root .heat3 { background: #5a877c; }
   #s7-root .heat4 { background: #4fa69a; }
   #s7-root .heat5 { background: #3fc9b6; color: #16211f; font-weight: 700; }
   #s7-root .heat-full { background: var(--amber); color: #1b1f1d; font-weight: 700; }
 
-  #s7-root .legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin: 10px 0; }
+  #s7-root .legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin: 10px 0; flex-wrap: wrap; }
   #s7-root .legend .sw { width:14px; height:14px; border-radius:3px; border:1px solid var(--line); }
-
-  #s7-root .slot-detail {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--text-dim);
-    min-height: 20px;
-  }
+  #s7-root .slot-detail { margin-top: 12px; font-size: 13px; color: var(--text-dim); min-height: 20px; }
   #s7-root .slot-detail b { color: var(--text); }
-
   #s7-root .pair-row { display: flex; gap: 8px; margin-bottom: 12px; }
   #s7-root .pair-row select { flex: 1; }
   #s7-root .common-list { display: flex; flex-wrap: wrap; gap: 6px; }
-  #s7-root .chip {
-    background: var(--panel-2);
-    border: 1px solid var(--teal);
-    color: var(--teal);
-    font-size: 12px;
-    padding: 5px 9px;
-    border-radius: 20px;
-  }
-  #s7-root .empty {
-    color: var(--text-dim);
-    font-size: 13px;
-    padding: 8px 0;
-  }
-  #s7-root .footer-note {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 16px;
-    line-height: 1.6;
-  }
+  #s7-root .chip { background: var(--panel-2); border: 1px solid var(--teal); color: var(--teal); font-size: 12px; padding: 5px 9px; border-radius: 20px; }
+  #s7-root .empty { color: var(--text-dim); font-size: 13px; padding: 8px 0; }
+  #s7-root .footer-note { font-size: 11px; color: var(--text-dim); margin-top: 16px; line-height: 1.6; }
   #s7-root .err { color: var(--danger); font-size: 12px; margin-top: 8px; }
+  #s7-root .ok { color: var(--teal); font-size: 12px; margin-top: 8px; }
+  #s7-root .code-box { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
+  #s7-root .code-box textarea { flex: 1; font-size: 12px; min-height: 46px; }
+  #s7-root .steps { font-size: 12px; color: var(--text-dim); line-height: 1.8; margin: 0 0 10px; padding-left: 18px; }
+  #s7-root .roster { font-size: 12px; color: var(--text-dim); margin-top: 10px; }
+  #s7-root .roster b { color: var(--text); }
 </style>
-
+</head>
+<body>
 <div id="s7-root">
-  <h1>7人1on1 スケジュール調整</h1>
-  <p class="sub">それぞれが空いている時間をチェックするだけ。全員分が集まったら、誰と誰が合うか自動で見えてくる。</p>
+  <h1>7人1on1 スケジュール調整（9/28〜10/11）</h1>
+  <p class="sub">サーバーに自動保存する仕組みが使えない環境向けに、「自分の空きコードをコピペで共有」する方式にしました。どのプラン・どのアカウントからでもこのリンクだけで使えます。</p>
   <div id="s7-body">読み込み中…</div>
 </div>
 
@@ -202,26 +114,27 @@
   const body = document.getElementById('s7-body');
 
   const START_HOUR = 9;
-  const END_HOUR = 21; // exclusive-ish: last slot starts at 20:00
-  const MEMBER_SLOTS = 7;
-  const END_DATE = new Date(2026, 8, 26); // 9月26日(土)まで
+  const END_HOUR = 21; // last slot starts at 20:00
+  const START_DATE = new Date(2026, 8, 28); // 9/28(月)
+  const END_DATE = new Date(2026, 9, 11);   // 10/11(日)
+  const LS_KEY = 's7_local_v1';
 
-  let members = ['', '', '', '', '', '', ''];
-  let me = null; // selected name for editing
-  let tab = 'edit'; // 'edit' | 'overview' | 'pair'
-  let availCache = {}; // name -> {slotKey: true}
-  let pairA = null, pairB = null;
+  let myName = '';
+  let mySlots = {}; // key -> true
+  let tab = 'edit'; // 'edit' | 'aggregate'
+  let pasteText = '';
+  let roster = []; // [{name, slots}] decoded from pasted codes (+ me, if named)
   let selectedSlot = null;
+  let pairA = null, pairB = null; // indices into roster
+  let statusMsg = null; // {type: 'ok'|'err', text}
+  let copied = false;
 
   const dates = [];
-  const base = new Date();
-  base.setHours(0, 0, 0, 0);
-  const endD = new Date(END_DATE);
-  endD.setHours(0, 0, 0, 0);
-  const dayCount = Math.max(1, Math.round((endD - base) / 86400000) + 1);
+  const startD = new Date(START_DATE); startD.setHours(0,0,0,0);
+  const endD = new Date(END_DATE); endD.setHours(0,0,0,0);
+  const dayCount = Math.max(1, Math.round((endD - startD) / 86400000) + 1);
   for (let i = 0; i < dayCount; i++) {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i);
+    const d = new Date(startD); d.setDate(startD.getDate() + i);
     dates.push(d);
   }
   const isoOf = (d) => d.toISOString().slice(0, 10);
@@ -229,138 +142,184 @@
   const dayLabel = (d) => `${d.getMonth() + 1}/${d.getDate()}(${wd[d.getDay()]})`;
   const hours = [];
   for (let h = START_HOUR; h < END_HOUR; h++) hours.push(h);
-  const slotKey = (dateIso, h) => `${dateIso}_${h}`;
+  const TOTAL_SLOTS = dates.length * hours.length;
 
-  async function safeGet(key, shared) {
+  function flatIndex(dateIdx, hourIdx) { return dateIdx * hours.length + hourIdx; }
+  function slotKeyOf(dateIdx, hourIdx) { return isoOf(dates[dateIdx]) + '_' + hours[hourIdx]; }
+
+  // ---- code encode/decode ----
+  function encodeCode(name, slotsObj) {
+    const bytes = new Uint8Array(Math.ceil(TOTAL_SLOTS / 8));
+    dates.forEach((d, di) => {
+      hours.forEach((h, hi) => {
+        const key = slotKeyOf(di, hi);
+        if (slotsObj[key]) {
+          const bit = flatIndex(di, hi);
+          bytes[bit >> 3] |= (1 << (bit & 7));
+        }
+      });
+    });
+    let bin = '';
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    const b64 = btoa(bin).replace(/=+$/, '');
+    return encodeURIComponent(name.trim()) + '.' + b64;
+  }
+
+  function decodeCode(code) {
+    const trimmed = code.trim();
+    if (!trimmed) return null;
+    const dot = trimmed.indexOf('.');
+    if (dot < 0) return null;
+    const namePart = trimmed.slice(0, dot);
+    const dataPart = trimmed.slice(dot + 1);
+    let name;
+    try { name = decodeURIComponent(namePart); } catch (e) { return null; }
+    if (!name) return null;
+    let bin;
+    try { bin = atob(dataPart); } catch (e) { return null; }
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const slots = {};
+    dates.forEach((d, di) => {
+      hours.forEach((h, hi) => {
+        const bit = flatIndex(di, hi);
+        if (bytes[bit >> 3] !== undefined && (bytes[bit >> 3] & (1 << (bit & 7)))) {
+          slots[slotKeyOf(di, hi)] = true;
+        }
+      });
+    });
+    return { name, slots };
+  }
+
+  // ---- local convenience storage (this browser only; not shared) ----
+  function loadLocal() {
     try {
-      const r = await window.storage.get(key, shared);
-      return r ? r.value : null;
-    } catch (e) {
-      return null;
-    }
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && typeof data.name === 'string') myName = data.name;
+      if (data && data.slots && typeof data.slots === 'object') mySlots = data.slots;
+    } catch (e) { /* private mode, quota, etc. — just start fresh */ }
   }
-
-  async function loadMembers() {
-    const v = await safeGet('members', true);
-    if (v) {
-      try {
-        const arr = JSON.parse(v);
-        if (Array.isArray(arr) && arr.length === MEMBER_SLOTS) members = arr;
-      } catch (e) {}
-    }
-  }
-
-  async function loadAvail(name) {
-    if (!name) return {};
-    if (availCache[name]) return availCache[name];
-    const v = await safeGet('avail:' + name, true);
-    let obj = {};
-    if (v) {
-      try { obj = JSON.parse(v); } catch (e) { obj = {}; }
-    }
-    availCache[name] = obj;
-    return obj;
-  }
-
-  async function saveMembers() {
+  function saveLocal() {
     try {
-      await window.storage.set('members', JSON.stringify(members), true);
-    } catch (e) {}
+      localStorage.setItem(LS_KEY, JSON.stringify({ name: myName, slots: mySlots }));
+    } catch (e) { /* ignore — this is only a convenience */ }
   }
 
-  async function saveAvail(name) {
-    try {
-      await window.storage.set('avail:' + name, JSON.stringify(availCache[name] || {}), true);
-    } catch (e) {}
-  }
-
-  function activeMembers() {
-    return members.map((n, i) => n.trim()).filter((n) => n.length > 0);
+  function rebuildRoster() {
+    const map = {}; // name -> slots (last one wins if duplicate name pasted)
+    if (myName.trim()) map[myName.trim()] = mySlots;
+    pasteText.split('\n').forEach((line) => {
+      const decoded = decodeCode(line);
+      if (decoded) map[decoded.name] = decoded.slots;
+    });
+    roster = Object.keys(map).map((name) => ({ name, slots: map[name] }));
   }
 
   function render() {
-    const active = activeMembers();
     let html = '';
 
-    // --- member setup panel ---
     html += `<div class="panel">
-      <label class="field-label">メンバー（最大7人・空欄でもOK）</label>
-      <div class="member-grid">`;
-    for (let i = 0; i < MEMBER_SLOTS; i++) {
-      html += `<input type="text" data-member-idx="${i}" value="${escapeAttr(members[i])}" placeholder="メンバー${i + 1}の名前" />`;
-    }
-    html += `</div>
-      <label class="field-label">あなたはどなたですか</label>
-      <select id="s7-who">
-        <option value="">選択してください</option>`;
-    active.forEach((n) => {
-      html += `<option value="${escapeAttr(n)}" ${me === n ? 'selected' : ''}>${escapeHtml(n)}</option>`;
-    });
-    html += `</select>
+      <label class="field-label">あなたの名前</label>
+      <input type="text" id="s7-name" value="${escapeAttr(myName)}" placeholder="例: 田中" />
     </div>`;
 
-    // --- tabs ---
+    if (statusMsg) {
+      html += `<div class="panel" style="border-color:${statusMsg.type === 'err' ? 'var(--danger)' : 'var(--teal)'}">
+        <div class="${statusMsg.type === 'err' ? 'err' : 'ok'}">${statusMsg.type === 'err' ? '⚠ ' : '✓ '}${escapeHtml(statusMsg.text)}</div>
+      </div>`;
+    }
+
     html += `<div class="tabs">
       <button class="tab ${tab === 'edit' ? 'active' : ''}" data-tab="edit">自分の空き時間</button>
-      <button class="tab ${tab === 'overview' ? 'active' : ''}" data-tab="overview">全員のヒートマップ</button>
-      <button class="tab ${tab === 'pair' ? 'active' : ''}" data-tab="pair">2人で合わせる</button>
+      <button class="tab ${tab === 'aggregate' ? 'active' : ''}" data-tab="aggregate">みんなで集計</button>
     </div>`;
 
     if (tab === 'edit') {
-      html += renderEditTab(active);
-    } else if (tab === 'overview') {
-      html += renderOverviewTab(active);
+      html += renderEditTab();
     } else {
-      html += renderPairTab(active);
+      html += renderAggregateTab();
     }
 
-    html += `<p class="footer-note">この画面を開いている間だけデータが有効です。ページを閉じると「あなたはどなたですか」の選択はリセットされますが、入力した空き時間は保存されています。</p>`;
+    html += `<p class="footer-note">名前と空き時間はこの端末のブラウザにだけ保存されます（他の人には自動で届きません）。他の人と共有するには「自分のコードをコピー」→LINEやSlackなどに貼って送る→誰かが全員分をこのページの集計欄にまとめて貼り付ける、という流れです。</p>`;
 
     body.innerHTML = html;
-    attachHandlers(active);
+    attachHandlers();
   }
 
-  function renderEditTab(active) {
-    if (!me) {
-      return `<div class="empty">まず上で自分の名前を選んでください。</div>`;
+  function renderEditTab() {
+    let html = `<div class="panel">
+      <ol class="steps">
+        <li>上の欄に名前を入れる</li>
+        <li>下の表で空いている時間をタップ</li>
+        <li>「自分のコードをコピー」を押して、グループのLINEやSlackに貼って送る</li>
+      </ol>
+    </div>`;
+    if (!myName.trim()) {
+      html += `<div class="empty">まず名前を入力してください。</div>`;
+      return html;
     }
-    let html = `<div class="who">編集中: <b>${escapeHtml(me)}</b> の空き時間（タップして色をつける）</div>`;
+    html += `<div class="who">編集中: <b>${escapeHtml(myName.trim())}</b> の空き時間（タップして色をつける）</div>`;
     html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
     dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
     html += `</tr></thead><tbody>`;
-    const myAvail = availCache[me] || {};
     hours.forEach((h) => {
       html += `<tr><td class="hourcol">${h}:00</td>`;
       dates.forEach((d) => {
-        const iso = isoOf(d);
-        const key = slotKey(iso, h);
-        const on = !!myAvail[key];
+        const key = isoOf(d) + '_' + h;
+        const on = !!mySlots[key];
         html += `<td class="cell ${on ? 'on' : ''}" data-slot="${key}"></td>`;
       });
       html += `</tr>`;
     });
     html += `</tbody></table></div>`;
+
+    const code = encodeCode(myName, mySlots);
+    html += `<div class="panel" style="margin-top:14px">
+      <label class="field-label">自分のコード（コピーして共有してください）</label>
+      <div class="code-box">
+        <textarea id="s7-mycode" readonly>${escapeHtml(code)}</textarea>
+        <button class="primary" id="s7-copy">${copied ? 'コピーしました' : 'コピー'}</button>
+      </div>
+    </div>`;
     return html;
   }
 
-  function renderOverviewTab(active) {
-    if (active.length === 0) {
-      return `<div class="empty">まずメンバーを入力してください。</div>`;
+  function renderAggregateTab() {
+    let html = `<div class="panel">
+      <label class="field-label">全員分のコードを1行ずつ貼り付け（自分の分は自動で含まれます）</label>
+      <textarea id="s7-paste" placeholder="佐藤.AH4F3K9...&#10;鈴木.B8s0P2q...">${escapeHtml(pasteText)}</textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="primary" id="s7-aggregate-btn">集計する</button>
+      </div>
+    </div>`;
+
+    if (roster.length === 0) {
+      html += `<div class="empty">コードを貼り付けて「集計する」を押すと、ヒートマップが出ます。</div>`;
+      return html;
     }
-    let html = `<div class="who">色が濃いほど、空いている人数が多い時間帯です。セルをタップすると誰が空いているか表示します。</div>`;
+
+    html += `<div class="roster">集計対象: ${roster.map((r) => `<b>${escapeHtml(r.name)}</b>`).join('、')}（${roster.length}人）</div>`;
+
+    html += `<div class="tabs" style="margin-top:14px">
+      <button class="tab ${true ? 'active' : ''}" data-subtab="heat" disabled style="cursor:default"></button>
+    </div>`;
+
+    html += `<h2 style="margin-top:14px">全員のヒートマップ</h2>`;
+    html += `<div class="who">色が濃いほど空いている人数が多い時間帯。セルをタップすると誰が空いているか表示します。</div>`;
     html += `<div class="grid-scroll"><table class="sched"><thead><tr><th class="hourcol"></th>`;
     dates.forEach((d) => { html += `<th>${dayLabel(d)}</th>`; });
     html += `</tr></thead><tbody>`;
     hours.forEach((h) => {
       html += `<tr><td class="hourcol">${h}:00</td>`;
       dates.forEach((d) => {
-        const iso = isoOf(d);
-        const key = slotKey(iso, h);
+        const key = isoOf(d) + '_' + h;
         let count = 0;
-        active.forEach((n) => { if (availCache[n] && availCache[n][key]) count++; });
-        const ratio = count / active.length;
+        roster.forEach((r) => { if (r.slots[key]) count++; });
+        const ratio = count / roster.length;
         let cls = 'heat0';
-        if (count > 0 && count === active.length) cls = 'heat-full';
+        if (count > 0 && count === roster.length) cls = 'heat-full';
         else if (ratio >= 0.7) cls = 'heat5';
         else if (ratio >= 0.5) cls = 'heat4';
         else if (ratio >= 0.3) cls = 'heat3';
@@ -375,51 +334,44 @@
       <span class="sw" style="background:var(--teal)"></span>多くが空いている
       <span class="sw" style="background:var(--amber)"></span>全員空いている
     </div>`;
-    html += `<div class="slot-detail" id="s7-slot-detail">${selectedSlot ? slotDetailHtml(selectedSlot, active) : '時間帯をタップすると詳細が出ます'}</div>`;
-    return html;
-  }
+    html += `<div class="slot-detail" id="s7-slot-detail">${selectedSlot ? slotDetailHtml(selectedSlot) : '時間帯をタップすると詳細が出ます'}</div>`;
 
-  function slotDetailHtml(sel, active) {
-    const who = active.filter((n) => availCache[n] && availCache[n][sel.key]);
-    if (who.length === 0) {
-      return `<b>${escapeHtml(sel.label)}</b>：まだ誰も空いていません。`;
-    }
-    return `<b>${escapeHtml(sel.label)}</b>：${who.map(escapeHtml).join('、')} が空いています。`;
-  }
-
-  function renderPairTab(active) {
-    if (active.length < 2) {
-      return `<div class="empty">2人以上のメンバーを入力してください。</div>`;
-    }
-    let html = `<div class="pair-row">
-      <select id="s7-pairA"><option value="">1人目</option>
-      ${active.map((n) => `<option value="${escapeAttr(n)}" ${pairA === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
-      </select>
-      <select id="s7-pairB"><option value="">2人目</option>
-      ${active.map((n) => `<option value="${escapeAttr(n)}" ${pairB === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('')}
-      </select>
-    </div>`;
-
-    if (pairA && pairB && pairA !== pairB) {
-      const a = availCache[pairA] || {};
-      const b = availCache[pairB] || {};
-      const common = [];
-      dates.forEach((d) => {
-        hours.forEach((h) => {
-          const key = slotKey(isoOf(d), h);
-          if (a[key] && b[key]) common.push(`${dayLabel(d)} ${h}:00`);
+    if (roster.length >= 2) {
+      html += `<h2 style="margin-top:20px">2人で合わせる</h2>`;
+      html += `<div class="pair-row">
+        <select id="s7-pairA"><option value="">1人目</option>
+        ${roster.map((r, i) => `<option value="${i}" ${pairA === i ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
+        </select>
+        <select id="s7-pairB"><option value="">2人目</option>
+        ${roster.map((r, i) => `<option value="${i}" ${pairB === i ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
+        </select>
+      </div>`;
+      if (pairA !== null && pairB !== null && pairA !== pairB && roster[pairA] && roster[pairB]) {
+        const a = roster[pairA].slots, b = roster[pairB].slots;
+        const common = [];
+        dates.forEach((d) => {
+          hours.forEach((h) => {
+            const key = isoOf(d) + '_' + h;
+            if (a[key] && b[key]) common.push(`${dayLabel(d)} ${h}:00`);
+          });
         });
-      });
-      if (common.length === 0) {
-        html += `<div class="empty">${escapeHtml(pairA)} と ${escapeHtml(pairB)} が共に空いている時間はまだありません。</div>`;
+        if (common.length === 0) {
+          html += `<div class="empty">${escapeHtml(roster[pairA].name)} と ${escapeHtml(roster[pairB].name)} が共に空いている時間はまだありません。</div>`;
+        } else {
+          html += `<div class="who">${escapeHtml(roster[pairA].name)} と ${escapeHtml(roster[pairB].name)} が共に空いている時間（${common.length}件）</div>`;
+          html += `<div class="common-list">${common.map((c) => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`;
+        }
       } else {
-        html += `<div class="who">${escapeHtml(pairA)} と ${escapeHtml(pairB)} が共に空いている時間（${common.length}件）</div>`;
-        html += `<div class="common-list">${common.map((c) => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</div>`;
+        html += `<div class="empty">2人選ぶと、共通の空き時間が一覧で出ます。</div>`;
       }
-    } else {
-      html += `<div class="empty">2人選ぶと、共通の空き時間が一覧で出ます。</div>`;
     }
     return html;
+  }
+
+  function slotDetailHtml(sel) {
+    const who = roster.filter((r) => r.slots[sel.key]);
+    if (who.length === 0) return `<b>${escapeHtml(sel.label)}</b>：まだ誰も空いていません。`;
+    return `<b>${escapeHtml(sel.label)}</b>：${who.map((r) => escapeHtml(r.name)).join('、')} が空いています。`;
   }
 
   function escapeHtml(s) {
@@ -427,46 +379,79 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  async function attachHandlers(active) {
-    root.querySelectorAll('[data-member-idx]').forEach((inp) => {
-      inp.addEventListener('change', async (e) => {
-        const idx = parseInt(e.target.getAttribute('data-member-idx'), 10);
-        members[idx] = e.target.value;
-        await saveMembers();
-        render();
-      });
-    });
-
-    const whoSel = root.querySelector('#s7-who');
-    if (whoSel) {
-      whoSel.addEventListener('change', async (e) => {
-        me = e.target.value || null;
-        if (me) await loadAvail(me);
+  function attachHandlers() {
+    const nameInput = root.querySelector('#s7-name');
+    if (nameInput) {
+      nameInput.addEventListener('change', (e) => {
+        myName = e.target.value;
+        saveLocal();
         render();
       });
     }
 
-    root.querySelectorAll('.tab').forEach((t) => {
-      t.addEventListener('click', async (e) => {
+    root.querySelectorAll('.tab[data-tab]').forEach((t) => {
+      t.addEventListener('click', (e) => {
         tab = e.target.getAttribute('data-tab');
-        if (tab === 'overview' || tab === 'pair') {
-          for (const n of active) await loadAvail(n);
-        }
+        statusMsg = null;
         render();
       });
     });
 
     root.querySelectorAll('[data-slot]').forEach((cell) => {
-      cell.addEventListener('click', async (e) => {
-        if (!me) return;
+      cell.addEventListener('click', (e) => {
+        if (!myName.trim()) return;
         const key = e.currentTarget.getAttribute('data-slot');
-        availCache[me] = availCache[me] || {};
-        if (availCache[me][key]) delete availCache[me][key];
-        else availCache[me][key] = true;
+        if (mySlots[key]) delete mySlots[key]; else mySlots[key] = true;
         e.currentTarget.classList.toggle('on');
-        await saveAvail(me);
+        saveLocal();
+        copied = false;
+        const codeBox = root.querySelector('#s7-mycode');
+        if (codeBox) codeBox.value = encodeCode(myName, mySlots);
+        const copyBtn = root.querySelector('#s7-copy');
+        if (copyBtn) copyBtn.textContent = 'コピー';
       });
     });
+
+    const copyBtn = root.querySelector('#s7-copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const code = encodeCode(myName, mySlots);
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(code);
+          } else {
+            const ta = root.querySelector('#s7-mycode');
+            ta.select();
+            document.execCommand('copy');
+          }
+          copied = true;
+          copyBtn.textContent = 'コピーしました';
+        } catch (e) {
+          const ta = root.querySelector('#s7-mycode');
+          if (ta) { ta.select(); }
+          statusMsg = { type: 'err', text: '自動コピーに失敗しました。コード欄を選択して手動でコピーしてください。' };
+          render();
+        }
+      });
+    }
+
+    const pasteArea = root.querySelector('#s7-paste');
+    if (pasteArea) {
+      pasteArea.addEventListener('change', (e) => { pasteText = e.target.value; });
+    }
+    const aggBtn = root.querySelector('#s7-aggregate-btn');
+    if (aggBtn) {
+      aggBtn.addEventListener('click', () => {
+        if (pasteArea) pasteText = pasteArea.value;
+        rebuildRoster();
+        if (roster.length === 0) {
+          statusMsg = { type: 'err', text: 'コードを読み取れませんでした。コピーした内容をそのまま貼り付けてください。' };
+        } else {
+          statusMsg = { type: 'ok', text: `${roster.length}人分を集計しました。` };
+        }
+        render();
+      });
+    }
 
     root.querySelectorAll('[data-heat-slot]').forEach((cell) => {
       cell.addEventListener('click', (e) => {
@@ -475,21 +460,19 @@
           label: e.currentTarget.getAttribute('data-heat-label'),
         };
         const detail = root.querySelector('#s7-slot-detail');
-        if (detail) detail.innerHTML = slotDetailHtml(selectedSlot, active);
+        if (detail) detail.innerHTML = slotDetailHtml(selectedSlot);
       });
     });
 
     const pa = root.querySelector('#s7-pairA');
     const pb = root.querySelector('#s7-pairB');
-    if (pa) pa.addEventListener('change', (e) => { pairA = e.target.value || null; render(); });
-    if (pb) pb.addEventListener('change', (e) => { pairB = e.target.value || null; render(); });
+    if (pa) pa.addEventListener('change', (e) => { pairA = e.target.value === '' ? null : parseInt(e.target.value, 10); render(); });
+    if (pb) pb.addEventListener('change', (e) => { pairB = e.target.value === '' ? null : parseInt(e.target.value, 10); render(); });
   }
 
-  async function init() {
-    await loadMembers();
-    render();
-  }
-
-  init();
+  loadLocal();
+  render();
 })();
 </script>
+</body>
+</html>
